@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Catalog</title>
+</head>
+<body>
+  <!-- Header Section -->
+  <header>
+    <h1>Catalog</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="cart.html">Shopping Cart</a>
+      <a href="checkout.html">Checkout</a>
+      <a href="admin.html">Admin</a>
+    </nav>
+  </header>
+
+  <!-- Main Content Section -->
+  <main>
+    <section class="catalog">
+      <h2>Available Products</h2>
+      <div class="catalog-controls">
+        <input type="text" id="search" placeholder="Search for products...">
+        <select id="filter">
+          <option value="all">All Categories</option>
+          <option value="electronics">Electronics</option>
+          <option value="fashion">Fashion</option>
+          <option value="home">Home Appliances</option>
+        </select>
+      </div>
+      <div id="product-list"></div>
+    </section>
+  </main>
+
+  <!-- Footer Section -->
+  <footer>
+    <p>&copy; 2024 Online Store. All rights reserved.</p>
+  </footer>
+
+  <script src="catalog.js"></script>
+</body>
+</html>
