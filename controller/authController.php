@@ -108,12 +108,6 @@ class AuthController {
         }
     }
 
-    public function adminUpdateItem() {
-        if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-            echo json_encode(["status" => "success", "message" => "update item test successful"]);
-        }
-    }
-
     /**
      * Handles a DELETE request from Administrator to remove an item.
      */
