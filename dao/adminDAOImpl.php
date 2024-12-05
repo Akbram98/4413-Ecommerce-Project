@@ -255,16 +255,19 @@ class AdminDAOImpl implements AdminDAO {
             $stmt = $this->pdo->prepare($query);
             $stmt->bindParam(':userName', $userName);
 
+            //check if the first query is executed
             if($stmt->execute()){
 
                 $stmt = $this->pdo->prepare($queryTwo);
                 $stmt->bindParam(':userName', $userName);
 
+                //check if the second query is executed. If not rollback the first query
                 if($stmt->execute()){
 
                     $stmt = $this->pdo->prepare($queryThree);
                     $stmt->bindParam(':userName', $userName);
 
+                    //check if the third query is exectued. If not rollback both the first and second queries 
                     if($stmt->execute()){
 
                         $this->pdo->commit();
@@ -284,7 +287,7 @@ class AdminDAOImpl implements AdminDAO {
                 $this->pdo->rollBack();
                 return false;
             }
-
+            //Catch block and rollback any chages made
         }catch (PDOException $e){
             $this->pdo->rollBack();
             echo "Error in deleting all entries for the current user" . $e->getMessage();
