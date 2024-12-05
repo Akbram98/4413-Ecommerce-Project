@@ -3,18 +3,33 @@
 include_once '../dao/Database.php';
 include_once '../dao/userDAO.php';
 include_once '../dao/adminDAO.php';
-include_once '../dao/ItemDAO.php';
+include_once '../dao/itemDAO.php';
+include_once '../dao/userDAOImpl.php';
+include_once '../dao/adminDAOImpl.php';
+include_once '../dao/itemDAOImpl.php';
+
 
 class AuthController {
     private $pdo;
     private $routes = []; // Simulate a route mapping
+    private AdminDAO $adminDAO;
+    private UserDAO $userDAO;
+    private ItemDAO $itemDAO;
+
 
     // Constructor to initialize the PDO connection
     public function __construct() {
         $database = new Database();
+
         $this->pdo = $database->getConnection();
+        $this->itemDAO = new ItemDAOImpl($this->pdo);
+        $this->userDAO = new UserDAOImpl($this->pdo);
+        $this->adminDAO = new AdminDAOImpl($this->pdo);
+        
         $this->defineRoutes();
         $this->handleRequest();
+
+
     }
 
     // Define your routes
@@ -92,24 +107,21 @@ class AuthController {
             $password = $data['password'] ?? null;
 
             if ($userName && $password) {
-                // Create UserDAO instance
-                $adminDAO = new AdminDAO($this->pdo);
-                if($adminDAO->isAdmin($userName)){
-                    if($adminDAO->updateLastLogon($userName))
+                if($this->adminDAO->isAdmin($userName)){
+                    if($this->adminDAO->updateLastLogon($userName))
                         echo json_encode(["status" => "success", "message" => "admin"]);
                     else
                         echo json_encode(["status" => "error", "message" => "admin login but last logon failed to update."]);
                     return;
                 }
 
-                $userDAO = new UserDAO($this->pdo);
-
+                
                 // Register the user and profile
-                $isValidUser = $userDAO->validateUser($userName, $password);
+                $isValidUser = $this->userDAO->validateUser($userName, $password);
                 header('Content-Type: application/json'); // set the content type
                 if ($isValidUser) {
                     
-                    if($userDAO->updateLastLogon($userName)){
+                    if($this->userDAO->updateLastLogon($userName)){
                         http_response_code(200); // set the http response code
                         echo json_encode(["status" => "success", "message" => "user"]);
                     }
@@ -144,10 +156,9 @@ class AuthController {
 
             if ($firstName && $lastName && $userName && $password) {
                 // Create UserDAO instance
-                $userDAO = new UserDAO($this->pdo);
 
                 // Register the user and profile
-                $isRegistered = $userDAO->registerUser($userName, $password, $firstName, $lastName);
+                $isRegistered = $this->userDAO->registerUser($userName, $password, $firstName, $lastName);
 
                 header('Content-Type: application/json');
                 if ($isRegistered) {
