@@ -204,8 +204,21 @@ class AdminDAOImpl implements AdminDAO {
     //TODO: Connect to the database via the pdo defined above, delete the item from Inventory table where the entry has the specified itemid.
     //Assigned-to: Rasengan
     public function deleteItem($itemid){
+        
+        try{
+        $query = "DELETE FROM inventory WHERE item_id = :itemid";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->bindParam(':itemid', $itemid);
 
-        return true;
+        if($stmt->execute()){
+            return true;
+        }else{
+            return false; //Failed to delete the item
+        }
+    }catch (PDOException $e){
+        echo "Error deleting item " . $e->getMessage();
+        return false;
+    }
     }
 
    /**
@@ -230,6 +243,54 @@ class AdminDAOImpl implements AdminDAO {
     // Keep in mind, you must delete all entries from all the tables having an association with this username
     //Assigned-to: Rasengan
     public function deleteCustomerRecords($userName){
+
+        try{
+            
+            $this->pdo->beginTransaction();
+            
+            $query = "DELETE FROM User WHERE userName = :userName";
+            $queryTwo = "DELETE FROM Profile WHERE userName = :userName";
+            $queryThree = "DELETE FROM Transaction WHERE userName = :userName";
+
+            $stmt = $this->pdo->prepare($query);
+            $stmt->bindParam(':userName', $userName);
+
+            if($stmt->execute()){
+
+                $stmt = $this->pdo->prepare($queryTwo);
+                $stmt->bindParam(':userName', $userName);
+
+                if($stmt->execute()){
+
+                    $stmt = $this->pdo->prepare($queryThree);
+                    $stmt->bindParam(':userName', $userName);
+
+                    if($stmt->execute()){
+
+                        $this->pdo->commit();
+                        return true;
+
+                    }else{
+                        $this->pdo->rollBack();
+                        return false;
+                    }
+
+                }else{
+                    $this->pdo->rollBack();
+                    return false;
+                }
+
+            }else{
+                $this->pdo->rollBack();
+                return false;
+            }
+
+        }catch (PDOException $e){
+            $this->pdo->rollBack();
+            echo "Error in deleting all entries for the current user" . $e->getMessage();
+            return false;
+
+        }
 
     }
 
