@@ -1,16 +1,78 @@
 <?php
 // Include necessary files (Database, DAO classes, etc.)
-include_once 'dao/Database.php';
-include_once 'dao/userDAO.php';
-include_once 'dao/adminDAO.php';
+include_once '../dao/Database.php';
+include_once '../dao/userDAO.php';
+include_once '../dao/adminDAO.php';
+include_once '../dao/ItemDAO.php';
 
 class AuthController {
     private $pdo;
+    private $routes = []; // Simulate a route mapping
 
     // Constructor to initialize the PDO connection
     public function __construct() {
         $database = new Database();
         $this->pdo = $database->getConnection();
+        $this->defineRoutes();
+        $this->handleRequest();
+    }
+
+    // Define your routes
+    private function defineRoutes()
+    {
+        // Map HTTP methods and routes to class methods
+        $this->routes = [
+            'GET' => [
+                '/getItems' => 'getItems',
+                '/getCustomers' => 'adminGetCustomers',
+                '/getTransactions' => 'getTransactions',
+                '/adminGetTransactions' => 'adminGetAllTransactions',
+            ],
+            'PUT' => [
+                '/signinUser' => 'signinUser',
+                '/adminUpdateItem' => 'adminUpdateItem',
+                '/updateUser' => 'updateUserProfile',
+                '/adminUpdateUser' => 'adminUpdateUserProfile',
+                '/updateItemInventory' => 'updateItemInventory',
+            ],
+            'POST' => [
+                '/registerUser' => 'registerUser',
+                '/adminAddItem' => 'adminAddItem',
+                '/addUserProfile' => 'addUserProfile',
+                '/registerProfile' => 'registerProfileFields',
+            ],
+            'DELETE' => [
+                '/deleteItem' => 'adminDeleteItem',
+                '/deleteProfileFields' => 'deleteProfileFields',
+                '/deleteCustomer' => 'adminDeleteCustomer',
+            ],
+        ];
+    }
+
+    // Handle the incoming request
+    private function handleRequest()
+    {
+        $requestMethod = $_SERVER['REQUEST_METHOD'];
+       // Retrieve the URL path
+        $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+
+        // Remove the base part of the URL
+        $lastSlashPosition = strrpos($requestUri, '/');
+
+        $path = substr($requestUri, $lastSlashPosition);
+
+        // Check if the route exists
+        if (isset($this->routes[$requestMethod][$path])) {
+            $methodName = $this->routes[$requestMethod][$path];
+            if (method_exists($this, $methodName)) {
+                call_user_func([$this, $methodName]);
+            } else {
+                $this->sendResponse(500, "Method '$methodName' not implemented!");
+            }
+        } else {
+            $this->sendResponse(404, "Route not found!");
+        }
     }
 
     /**
@@ -18,9 +80,16 @@ class AuthController {
      * Verifies the user credentials and sends a success message if valid.
      */
     public function signinUser() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $userName = $_POST['userName'] ?? null;
-            $password = $_POST['password'] ?? null;
+        if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
+
+            // Read the raw input stream
+            $input = file_get_contents("php://input");
+
+            // Decode the JSON payload
+            $data = json_decode($input, true);
+
+            $userName = $data['userName'] ?? null;
+            $password = $data['password'] ?? null;
 
             if ($userName && $password) {
                 // Create UserDAO instance
@@ -37,20 +106,27 @@ class AuthController {
 
                 // Register the user and profile
                 $isValidUser = $userDAO->validateUser($userName, $password);
-
+                header('Content-Type: application/json'); // set the content type
                 if ($isValidUser) {
                     
-                    if($userDAO->updateLastLogon($userName))
+                    if($userDAO->updateLastLogon($userName)){
+                        http_response_code(200); // set the http response code
                         echo json_encode(["status" => "success", "message" => "user"]);
-                    else
+                    }
+                    else{
+                        http_response_code(500);
                         echo json_encode(["status" => "error", "message" => "User login but last logon failed to update."]);
+                    }
                 } else {
+                    http_response_code(401);
                     echo json_encode(["status" => "error", "message" => "User validation not successful"]);
                 }
             } else {
+                http_response_code(400);
                 echo json_encode(["status" => "error", "message" => "All fields are required (firstName, lastName)"]);
             }
         } else {
+            http_response_code(405);
             echo json_encode(["status" => "error", "message" => "Invalid request method. Use POST."]);
         }
     }
@@ -73,27 +149,62 @@ class AuthController {
                 // Register the user and profile
                 $isRegistered = $userDAO->registerUser($userName, $password, $firstName, $lastName);
 
+                header('Content-Type: application/json');
                 if ($isRegistered) {
+                    http_response_code(200);
                     echo json_encode(["status" => "success", "message" => "User registered successfully."]);
                 } else {
+                    http_response_code(403);
                     echo json_encode(["status" => "error", "message" => "Username already exists."]);
                 }
             } else {
+                http_response_code(400);
                 echo json_encode(["status" => "error", "message" => "All fields are required (firstName, lastName, userName, password)."]);
             }
         } else {
+            http_response_code(405);
             echo json_encode(["status" => "error", "message" => "Invalid request method. Use POST."]);
         }
     }
 
-    /**
-     * Handles a PUT request from Administrator to add an item.
-     * 
+     /**
+     * Handles a POST request register profile fields IF defined at registration by customer 
+     * In the body of the POST request should have these possible data:
+     *  username, street, city, province, postal, card_num, cvv, and expiry
      */
-    // TODO: this is a PUT request to add additional fields to user profiles
+    // TODO: this is a POST request to add additional fields to user profiles
+    // assigned-To: Hiraku
+    public function registerProfileFields() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+            $userName = $_POST['userName'] ?? null;
+            $street = $_POST['street'] ?? null;
+            $city = $_POST['city'] ?? null;
+            $province = $_POST['province'] ?? null;
+            $postal = $_POST['postal'] ?? null;
+            $card = $_POST['card_num'] ?? null;
+            $cvv = $_POST['cvv'] ?? null;
+            $expiry = $_POST['expiry'] ?? null;
+
+            if ($userName && $street && $city && $province && $postal && $card && $cvv && $expiry){
+                
+            }
+            echo json_encode(["status" => "success", "message" => "admin add item test successful"]);
+        }
+    }
+
+    
+
+    /**
+     * Handles a POST request from Administrator to add an item.
+     * the body must have these fields: name, price, description, brand, quantity, image
+     * You will use the addItem() function in AdminDAO
+     */
+    // TODO: this is a POST request to add additional fields to user profiles
+    //assignedTo: Rasengan
     public function adminAddItem() {
-        if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-            echo json_encode(["status" => "success", "message" => "updateUserProfile test successful"]);
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            echo json_encode(["status" => "success", "message" => "admin add item test successful"]);
         }
     }
 
@@ -101,15 +212,31 @@ class AuthController {
      * Handles a PUT request from Administrator to update an Item.
      * 
      */
-    // TODO: this is a PUT request to add additional fields to user profiles
+    // TODO: this is a PUT request to update Items in inventory
+    // assignedTo: Hiraku
     public function adminUpdateItem() {
         if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-            echo json_encode(["status" => "success", "message" => "add item test successful"]);
+            echo json_encode(["status" => "success", "message" => "update item test successful"]);
+        }
+    }
+
+     /**
+     * Handles a PUT request from Administrator to update an Item.
+     * 
+     */
+    // TODO: this is a PUT request to update inventory levels after customer checkout
+    // assignedTo: Hiraku
+    public function updateItemInventory() {
+        if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
+            echo json_encode(["status" => "success", "message" => "update item inventory test successful"]);
         }
     }
 
     /**
      * Handles a DELETE request from Administrator to remove an item.
+     * needs the itemid, and call deleteItem(itemid) from AdminDAO
+     * Check signinUser for clues on what to do to retrieve the itemid from the request
+     * assignedTo: Rasengan
      */
     public function adminDeleteItem() {
         if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
@@ -117,34 +244,83 @@ class AuthController {
         }
     }
 
+     /**
+     * Handles a DELETE request from Administrator to remove an customer given username.
+     * assignedTo: Hiraku
+     */
+    //TODO
+    public function adminDeleteCustomer() {
+        if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
+            echo json_encode(["status" => "success", "message" => "delete customer test success"]);
+        }
+    }
+
+    /**
+     * Handles a GET request to retrieve all items from inventory.
+     *
+     * assignedTo: Rasengan
+     */
+    //TODO: the function you should call is in the ItemDAO 
+    public function getItems() {
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            echo json_encode(["status" => "success", "message" => "get item test success"]);
+        }
+    }
+
+     /**
+     * Handles a GET request to retrieve all transactions made by the user, given user's username.
+     * assignedTo: Hiraku
+     */
+    public function getTransactions() {
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            echo json_encode(["status" => "success", "message" => "get item test success"]);
+        }
+    }
+
+     /**
+     * Handles a GET request to retrieve all transactions made by all users.
+     * I think its just one function call from AdminDAO
+     * assignedTo: Rasengan
+     */
+    public function adminGetAllTransactions() {
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            echo json_encode(["status" => "success", "message" => "get item test success"]);
+        }
+    }
+
+    /**
+     * Handles a GET request to retrieve all items from inventory.
+     * assignedTo: Hiraku
+     */
+    public function adminGetCustomers() {
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            echo json_encode(["status" => "success", "message" => "delete item test success"]);
+        }
+    }
 
     /**
      * Handles a PUT request to update user details.
-     * 
+     * You'll be calling this function updateProfileFields(Profile $profile)
+     * So you need to create a Profile instance and fill out the fields
+     *
      */
-    // TODO: this is a PUT request to add additional fields to user profiles
+    // TODO: this is a PUT request to update fields to user profiles given the user's username and details to update
+    //assignedTo: Rasengan
     public function updateUserProfile() {
         if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
             echo json_encode(["status" => "success", "message" => "updateUserProfile test successful"]);
         }
     }
 
-    /**
-     * Handles a DELETE request to remove a user.
-     */
-    public function delete() {
-        if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
-            echo json_encode(["status" => "success", "message" => "delete test success"]);
+    // TODO: this is a PUT request to update fields to user profiles by admin given the user's username and details to update
+    // assignedTo: Hiraku
+    public function adminUpdateUserProfile() {
+        if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
+            echo json_encode(["status" => "success", "message" => "updateUserProfile test successful"]);
         }
     }
 
-    /**
-     * Handles a GET request to retrieve user details.
-     */
-    public function getUser() {
-        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-            echo json_encode(["status" => "success", "message" => "getUser Test success."]);
-        }
-    }
 }
+
+new AuthController();
 ?>

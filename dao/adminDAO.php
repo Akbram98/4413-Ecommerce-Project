@@ -1,11 +1,11 @@
 <?php
 
-include_once 'model/paymentModel.php';
-include_once 'model/userModel.php';
-include_once 'model/transactionModel.php';
-include_once 'model/profileModel.php';
-include_once 'model/inventoryModel.php';
-include_once 'model/itemModel.php';
+include_once '../model/paymentModel.php';
+include_once '../model/userModel.php';
+include_once '../model/transactionModel.php';
+include_once '../model/profileModel.php';
+include_once '../model/inventoryModel.php';
+include_once '../model/itemModel.php';
 
 class AdminDAO {
     private $pdo;
@@ -84,7 +84,7 @@ class AdminDAO {
      * Retrieves all users and their associated profiles from the User and Profile tables.
      * @return array - An array of UserModel objects, each containing a ProfileModel
      */
-    public function getAllUsersWithProfiles() {
+    public function getAllUsers() {
         try {
             $usersWithProfiles = [];
 
@@ -193,44 +193,57 @@ class AdminDAO {
         }
     }
 
+
     /**
-     * Retrieves all items from the Inventory table using the Inventory class.
-     * @return array - An array of Inventory objects
+     * Deletes an Item from inventory.
+     * 
+     * @param string $itemid - The id of the item
+     * @return bool - Returns true if the item was deleted successfully
      */
-    public function getAllItems() {
-        try {
-            $inventory = new Inventory();
+    //TODO: Connect to the database via the pdo defined above, delete the item from Inventory table where the entry has the specified itemid.
+    //Assigned-to: Rasengan
+    public function deleteItem($itemid){
 
-            // Query to get all items from the Inventory table
-            $inventoryQuery = "SELECT * FROM Inventory";
-            $stmt = $this->pdo->prepare($inventoryQuery);
-            $stmt->execute();
-            $inventoryRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return true;
+    }
 
-            foreach ($inventoryRows as $itemRow) {
-                // Create an Inventory object for each item
-                $item = new Item(
-                    $itemRow['item_id'],
-                    $itemRow['name'],
-                    $itemRow['price'],
-                    $itemRow['description'],
-                    $itemRow['brand'],
-                    $itemRow['date'],
-                    $itemRow['quantity'],
-                    $itemRow['image']
-                );
+   /**
+    * Adds an item to the inventory.
+    * 
+    * @param Item $item data to be added to inventory.
+    * 
+    * @return bool Returns true if the item was added successfully.
+    * assignedTo: Hiraku
+    */
+    public function addItem(Item $item){
+        return true;
+    }
 
-                // Add the Inventory object to the items array
-                $inventory->addItem($item);
-            }
+    /**
+     * Deletes Customer records with associated username.
+     * 
+     * @param string $userName - The username of the customer
+     * @return bool - Returns true if the customer is deleted successfully
+     */
+    //TODO: Connect to the database using pdo defined above, and perform the task to follow the same convention as the other methods
+    // Keep in mind, you must delete all entries from all the tables having an association with this username
+    //Assigned-to: Rasengan
+    public function deleteCustomerRecords($userName){
 
-            return $inventory.getItems();
+    }
 
-        } catch (PDOException $e) {
-            // Handle exceptions (log error, rethrow, etc.)
-            echo "Error retrieving items from inventory: " . $e->getMessage();
-            return [];
-        }
+    /**
+     * Updates customer records with the provided information.
+     *
+     * @param Profile - containing details of customer profile to be updated
+     *
+     * @return bool - if customer informationupdated successfully
+     * TODO:// 
+     * assigned-To: Hiraku
+     */
+    public function updateCustomerRecords(Profile $profile){
+
+        return true;
     }
 }
 ?>

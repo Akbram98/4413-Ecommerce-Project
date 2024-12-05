@@ -47,7 +47,6 @@ class Database {
                 // Optional: set character encoding to UTF-8
                 $this->conn->exec("SET NAMES 'utf8'");
 
-                echo "Connection established successfully."; // success message
             } catch (PDOException $e) {
                 // If an error occurs during connection, show the error message
                 echo "Connection failed: " . $e->getMessage();

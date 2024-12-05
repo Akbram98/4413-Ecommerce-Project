@@ -22,8 +22,8 @@
  *
  */
 
-include_once 'model/userModel.php';
-include_once 'model/profileModel.php';
+include_once '../model/userModel.php';
+include_once '../model/profileModel.php';
 
 class UserDAO {
     private $pdo;
