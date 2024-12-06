@@ -106,8 +106,34 @@ class ItemDAOImpl implements ItemDAO {
     //TODO: Connect to the database using pdo defined above, and perform the task to follow the same convention as the other methods
     //Assigned-to: Rasengan
     public function updateItemInventory($itemid, $amount){
+        
+        //try to update the amount of the item at $itemid to the requested $amount
+        try{
+            
 
-        return true;
+            $query = "UPDATE Inventory SET quantity = :amount WHERE item_id = :itemid";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->bindParam(':amount', $amount);
+            $stmt->bindParam(':itemid', $itemid);
+            
+            //execute query if true return true else false
+            if($stmt->execute()){
+
+                return true;
+            }else{
+                return false;
+            }
+
+            
+
+            
+        //catch block 
+        }catch(PDOException $e){
+            echo "Item inventory was not updated: " . $e->getMessage();
+            return false;
+        }
+
+        
     }
 
 }
