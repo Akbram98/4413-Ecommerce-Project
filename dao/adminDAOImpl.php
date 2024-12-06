@@ -229,8 +229,27 @@ class AdminDAOImpl implements AdminDAO {
     * @return bool Returns true if the item was added successfully.
     * assignedTo: Hiraku
     */
-    public function addItem(Item $item){
-        return true;
+    public function addItem(Item $item): bool {
+        $query = "INSERT INTO Inventory (name, price, description, brand, date, quantity, image)
+                  VALUES (:name, :price, :description, :brand, :date, :quantity, :image)";
+        
+        $stmt = $this->pdo->prepare($query);
+
+        $stmt->bindValue(':name', $item->getName());
+        $stmt->bindValue(':price', $item->getPrice());
+        $stmt->bindValue(':description', $item->getDescription());
+        $stmt->bindValue(':brand', $item->getBrand());
+        $stmt->bindValue(':date', $item->getDate());
+        $stmt->bindValue(':quantity', $item->getQuantity());
+        $stmt->bindValue(':image', $item->getImage());
+
+        try {
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            // Log error if needed
+            error_log("Add Item Error: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -306,9 +325,58 @@ class AdminDAOImpl implements AdminDAO {
      * TODO:// 
      * assigned-To: Hiraku
      */
-    public function updateCustomerRecords(Profile $profile){
-
-        return true;
+    public function updateCustomerRecords(Profile $profile) {
+        $query = "UPDATE Profiles SET ";
+        $params = [];
+        $updates = [];
+    
+        // Add fields to update if not null
+        if (!is_null($profile->getStreet())) {
+            $updates[] = "street = :street";
+            $params[':street'] = $profile->getStreet();
+        }
+        if (!is_null($profile->getCity())) {
+            $updates[] = "city = :city";
+            $params[':city'] = $profile->getCity();
+        }
+        if (!is_null($profile->getProvince())) {
+            $updates[] = "province = :province";
+            $params[':province'] = $profile->getProvince();
+        }
+        if (!is_null($profile->getPostal())) {
+            $updates[] = "postal = :postal";
+            $params[':postal'] = $profile->getPostal();
+        }
+        if (!is_null($profile->getCardNum())) {
+            $updates[] = "cardNum = :cardNum";
+            $params[':cardNum'] = $profile->getCardNum();
+        }
+        if (!is_null($profile->getCvv())) {
+            $updates[] = "cvv = :cvv";
+            $params[':cvv'] = $profile->getCvv();
+        }
+        if (!is_null($profile->getExpiry())) {
+            $updates[] = "expiry = :expiry";
+            $params[':expiry'] = $profile->getExpiry();
+        }
+    
+        // If no fields to update, return false
+        if (empty($updates)) {
+            return false;
+        }
+    
+        // Join update clauses and complete query
+        $query .= implode(", ", $updates) . " WHERE userName = :userName";
+        $params[':userName'] = $profile->getUserName();
+    
+        // Execute query
+        try {
+            $stmt = $this->pdo->prepare($query);
+            return $stmt->execute($params);
+        } catch (PDOException $e) {
+            // Handle error (log it, rethrow, etc.)
+            return false;
+        }
     }
 }
 ?>
