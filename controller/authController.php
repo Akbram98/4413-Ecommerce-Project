@@ -40,7 +40,7 @@ class AuthController {
             'GET' => [
                 '/getItems' => 'getItems',
                 '/getCustomers' => 'adminGetCustomers',
-                '/getTransactions' => 'getTransactions',
+                '/getUserTransactions' => 'getUserTransactions',
                 '/adminGetTransactions' => 'adminGetAllTransactions',
             ],
             'PUT' => [
@@ -53,12 +53,10 @@ class AuthController {
             'POST' => [
                 '/registerUser' => 'registerUser',
                 '/adminAddItem' => 'adminAddItem',
-                '/addUserProfile' => 'addUserProfile',
-                '/registerProfile' => 'registerProfileFields',
+                '/addUserTransactions' => 'addUserTransactions',
             ],
             'DELETE' => [
                 '/deleteItem' => 'adminDeleteItem',
-                '/deleteProfileFields' => 'deleteProfileFields',
                 '/deleteCustomer' => 'adminDeleteCustomer',
             ],
         ];
@@ -185,6 +183,7 @@ class AuthController {
      */
     // TODO: this is a POST request to add additional fields to user profiles
     // assigned-To: Hiraku
+    /*
     public function registerProfileFields() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
@@ -202,7 +201,7 @@ class AuthController {
             }
             echo json_encode(["status" => "success", "message" => "admin add item test successful"]);
         }
-    }
+    }*/
 
     
 
@@ -274,28 +273,181 @@ class AuthController {
     }
 
     /**
-     * Handles a PUT request from Administrator to update an Item.
-     * 
+     * Handles PUT requests to update an item in the Inventory table.
+     *
+     * This REST endpoint receives data via a PUT request, processes the fields
+     * needed to create an `Item` object, and calls the `updateItemFields` method
+     * of the DAO to update the corresponding database entry.
+     *
+     * The response is returned in JSON format with a status message and appropriate
+     * HTTP status codes indicating the success or failure of the operation.
+     *
+     * Example Response:
+     * {
+     *   "status": "success",
+     *   "message": "Item updated successfully"
+     * }
+     *
+     * @return void Outputs a JSON-encoded response.
      */
-    // TODO: this is a PUT request to update Items in inventory
-    // assignedTo: Hiraku
     public function adminUpdateItem() {
-        if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-            echo json_encode(["status" => "success", "message" => "update item test successful"]);
+        // Set response header
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+            // Retrieve and decode the input data
+            parse_str(file_get_contents("php://input"), $inputData);
+
+            // Validate required fields
+            if (!isset($inputData['itemId']) || 
+                !isset($inputData['name']) || 
+                !isset($inputData['price']) || 
+                !isset($inputData['description']) || 
+                !isset($inputData['brand']) || 
+                !isset($inputData['date']) || 
+                !isset($inputData['quantity']) || 
+                !isset($inputData['image'])) {
+                
+                http_response_code(400); // Bad Request
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "Missing required fields"
+                ]);
+                return;
+            }
+
+            try {
+                // Create the Item object
+                $item = new Item(
+                    $inputData['itemId'],
+                    $inputData['name'],
+                    $inputData['price'],
+                    $inputData['description'],
+                    $inputData['brand'],
+                    $inputData['date'],
+                    $inputData['quantity'],
+                    $inputData['image']
+                );
+
+                // Call the DAO's updateItemFields method
+                $result = $this->adminDAO->updateItemFields($item);
+
+                // Respond based on the DAO's result
+                if ($result) {
+                    http_response_code(200); // OK
+                    echo json_encode([
+                        "status" => "success",
+                        "message" => "Item updated successfully"
+                    ]);
+                } else {
+                    http_response_code(500); // Internal Server Error
+                    echo json_encode([
+                        "status" => "error",
+                        "message" => "Failed to update item"
+                    ]);
+                }
+            } catch (Exception $e) {
+                // Handle exceptions and provide a meaningful error response
+                http_response_code(500); // Internal Server Error
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "An error occurred: " . $e->getMessage()
+                ]);
+            }
+        } else {
+            // Invalid request method
+            http_response_code(405); // Method Not Allowed
+            echo json_encode([
+                "status" => "error",
+                "message" => "Invalid request method"
+            ]);
         }
     }
 
-     /**
-     * Handles a PUT request from Administrator to update an Item.
+
+    /**
+     * Handles a PUT request from Administrator to update an Item's inventory levels.
      * 
+     * This endpoint allows an administrator to update the inventory levels of an item
+     * after a customer checkout. It expects the `itemId` and the `amount` to be provided.
+     * The inventory levels of the corresponding item are adjusted accordingly.
+     * 
+     * The response is returned in JSON format, and appropriate HTTP status codes
+     * are set based on the success or failure of the operation.
+     * 
+     * @return void Outputs a JSON-encoded response.
+     * assignTo: Hiraku
      */
-    // TODO: this is a PUT request to update inventory levels after customer checkout
-    // assignedTo: Hiraku
+
     public function updateItemInventory() {
-        if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-            echo json_encode(["status" => "success", "message" => "update item inventory test successful"]);
+        // Set response header
+        header('Content-Type: application/json');
+
+        // Check if the request method is PUT
+        if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+            // Retrieve and decode the input data
+            parse_str(file_get_contents("php://input"), $inputData);
+
+            // Validate required fields
+            if (!isset($inputData['itemId']) || !isset($inputData['amount'])) {
+                http_response_code(400); // Bad Request
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "Missing required fields: itemId and amount"
+                ]);
+                return;
+            }
+
+            // Extract the itemId and amount
+            $itemId = $inputData['itemId'];
+            $amount = $inputData['amount'];
+
+            // Validate amount (it should be an integer and non-negative)
+            if (!is_numeric($amount) || $amount <= 0) {
+                http_response_code(400); // Bad Request
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "Invalid amount value"
+                ]);
+                return;
+            }
+
+            try {
+                // Call the function to update the item inventory
+                $result = $this->itemDAO->updateItemInventory($itemId, $amount);
+
+                // Respond based on the result of the update
+                if ($result) {
+                    http_response_code(200); // OK
+                    echo json_encode([
+                        "status" => "success",
+                        "message" => "Inventory updated successfully"
+                    ]);
+                } else {
+                    http_response_code(500); // Internal Server Error
+                    echo json_encode([
+                        "status" => "error",
+                        "message" => "Failed to update inventory"
+                    ]);
+                }
+            } catch (Exception $e) {
+                // Handle exceptions
+                http_response_code(500); // Internal Server Error
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "An error occurred: " . $e->getMessage()
+                ]);
+            }
+        } else {
+            // Invalid request method
+            http_response_code(405); // Method Not Allowed
+            echo json_encode([
+                "status" => "error",
+                "message" => "Invalid request method"
+            ]);
         }
     }
+
 
     /**
      * Handles a DELETE request from Administrator to remove an item.
@@ -343,14 +495,71 @@ class AuthController {
         }
     }
 
-     /**
-     * Handles a DELETE request from Administrator to remove an customer given username.
+    /**
+     * Handles a DELETE request from Administrator to remove a customer given their username.
+     * 
+     * This endpoint allows an administrator to delete a customer record from the database
+     * by specifying the customer's username. If successful, the response will indicate success,
+     * otherwise an error message will be returned.
+     * 
+     * @return void Outputs a JSON-encoded response.
      * assignedTo: Hiraku
      */
-    //TODO
     public function adminDeleteCustomer() {
-        if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
-            echo json_encode(["status" => "success", "message" => "delete customer test success"]);
+        // Set response header
+        header('Content-Type: application/json');
+
+        // Check if the request method is DELETE
+        if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+            // Retrieve and decode the input data
+            parse_str(file_get_contents("php://input"), $inputData);
+
+            // Validate required field (userName)
+            if (!isset($inputData['userName'])) {
+                http_response_code(400); // Bad Request
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "Missing required field: userName"
+                ]);
+                return;
+            }
+
+            // Extract the userName
+            $userName = $inputData['userName'];
+
+            try {
+                // Call the DAO function to delete the customer record
+                $result = $this->adminDAO->deleteCustomerRecords($userName);
+
+                // Respond based on the result of the deletion
+                if ($result) {
+                    http_response_code(200); // OK
+                    echo json_encode([
+                        "status" => "success",
+                        "message" => "Customer deleted successfully"
+                    ]);
+                } else {
+                    http_response_code(500); // Internal Server Error
+                    echo json_encode([
+                        "status" => "error",
+                        "message" => "Failed to delete customer"
+                    ]);
+                }
+            } catch (Exception $e) {
+                // Handle exceptions
+                http_response_code(500); // Internal Server Error
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "An error occurred: " . $e->getMessage()
+                ]);
+            }
+        } else {
+            // Invalid request method
+            http_response_code(405); // Method Not Allowed
+            echo json_encode([
+                "status" => "error",
+                "message" => "Invalid request method"
+            ]);
         }
     }
 
@@ -384,15 +593,169 @@ class AuthController {
         }
     }
 
-     /**
+    /**
      * Handles a GET request to retrieve all transactions made by the user, given user's username.
      * assignedTo: Hiraku
      */
-    public function getTransactions() {
+    public function getUserTransactions() {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-            echo json_encode(["status" => "success", "message" => "get item test success"]);
+            // Check if the username parameter is provided
+            if (isset($_GET['username']) && !empty($_GET['username'])) {
+                $username = $_GET['username'];
+
+                try {
+                    // Call the getUserTransactions() method
+                    $transactions = $this->getUserTransactions($username);
+
+                    if (!empty($transactions)) {
+                        // Return success response with transactions data
+                        http_response_code(200); // HTTP Status 200: OK
+                        echo json_encode([
+                            "status" => "success",
+                            "message" => "Transactions retrieved successfully.",
+                            "data" => $transactions
+                        ]);
+                    } else {
+                        // If no transactions found, return a 404 response
+                        http_response_code(404); // HTTP Status 404: Not Found
+                        echo json_encode([
+                            "status" => "error",
+                            "message" => "No transactions found for the given username."
+                        ]);
+                    }
+                } catch (Exception $e) {
+                    // Handle any errors with a 500 response
+                    http_response_code(500); // HTTP Status 500: Internal Server Error
+                    echo json_encode([
+                        "status" => "error",
+                        "message" => "Failed to retrieve transactions: " . $e->getMessage()
+                    ]);
+                }
+            } else {
+                // If the username parameter is missing, return a 400 response
+                http_response_code(400); // HTTP Status 400: Bad Request
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "Missing or invalid username parameter."
+                ]);
+            }
+        } else {
+            // If the request method is not GET, return a 405 response
+            http_response_code(405); // HTTP Status 405: Method Not Allowed
+            echo json_encode([
+                "status" => "error",
+                "message" => "Invalid request method. Only GET is allowed."
+            ]);
         }
     }
+
+        /**
+     * Handles a POST request to add user transactions, given item IDs and payment details.
+     * assignedTo: Hiraku
+     */
+    public function addUserTransactions() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // Get the raw POST data
+            $data = json_decode(file_get_contents('php://input'), true);
+
+            // Check if all required fields are present in the request
+            if (isset($data['items']) && isset($data['payment'])) {
+                $items = $data['items']; // Array of objects with itemId and quantity
+                $paymentData = $data['payment']; // Payment details
+
+                // Extract payment details
+                $fullName = $paymentData['fullName'];
+                $userName = $paymentData['userName'];
+                $cardNum = $paymentData['card_num'];
+                $cvv = $paymentData['cvv'];
+                $expiry = $paymentData['expiry'];
+
+                // Initialize an empty array to hold the transaction objects
+                $transactions = [];
+                $totalPrice = 0;
+
+                try {
+                    // Loop through the items and get item details
+                    foreach ($items as $item) {
+                        // Check if both itemId and quantity are present
+                        if (isset($item['itemId']) && isset($item['quantity'])) {
+                            $itemId = $item['itemId'];
+                            $quantity = $item['quantity'];
+
+                            // Get item data using itemDAO
+                            $itemModel = $this->itemDAO->getItemById($itemId);
+
+                            // Check if the item exists
+                            if ($itemModel) {
+                                // Calculate the price for the quantity ordered
+                                $itemPrice = $itemModel->getPrice();
+                                $totalPrice += $itemPrice * $quantity;
+
+                                // Create a new transaction model for each item
+                                $transaction = new Transaction(
+                                    null, // trans_id will be assigned later
+                                    $itemModel->getItemId(),
+                                    $userName,
+                                    $quantity, // Set the quantity from the request
+                                    null
+                                );
+
+                                // Add the transaction to the transactions array
+                                $transactions[] = $transaction;
+                            } else {
+                                // Handle the case where the item doesn't exist
+                                echo json_encode(["status" => "error", "message" => "Item ID $itemId not found"]);
+                                return;
+                            }
+                        } else {
+                            // Missing itemId or quantity in the request
+                            echo json_encode(["status" => "error", "message" => "Invalid item data (missing itemId or quantity)"]);
+                            return;
+                        }
+                    }
+
+                    // Create a payment model
+                    $payment = new Payment(
+                        null, // trans_id will be generated on insert
+                        $cardNum,
+                        $cvv,
+                        $expiry,
+                        $totalPrice,
+                        1, // Set processed status as 1 (successful)
+                        null, // Date of payment
+                        $fullName
+                    );
+
+                    // Add transactions to the payment model
+                    foreach ($transactions as $transaction) {
+                        $payment->addTransaction($transaction);
+                    }
+
+                    // Call userDAO's addUserTransactions to insert payment and transactions into the database
+                    $result = $this->userDAO->addUserTransactions($payment);
+
+                    $updated_inventory = $itemModel.getQuantity() - $quantity;
+                    $itemDAO->updateItemInventory($updated_inventory);
+
+                    // Return success response
+                    echo json_encode(["status" => "success", "message" => "Transactions added successfully", "data" => $result]);
+
+                } catch (Exception $e) {
+                    // Handle exceptions (log error, rethrow, etc.)
+                    echo json_encode(["status" => "error", "message" => "Error processing transactions: " . $e->getMessage()]);
+                }
+            } else {
+                // Missing required fields in the request
+                echo json_encode(["status" => "error", "message" => "Missing required fields"]);
+            }
+        } else {
+            // Invalid HTTP method (only POST is allowed)
+            echo json_encode(["status" => "error", "message" => "Invalid request method"]);
+        }
+    }
+
+
+
 
      /**
      * Handles a GET request to retrieve all transactions made by all users.
@@ -429,17 +792,49 @@ class AuthController {
     }
 
     /**
-     * Handles a GET request to retrieve all items from inventory.
+     * Handles a GET request to retrieve all customers from the database.
      * assignedTo: Hiraku
      */
     public function adminGetCustomers() {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            try {
+                // Fetch all users using the getAllUsers() function
+                $users = $adminDAO->getAllUsers();
 
-            
-
-            echo json_encode(["status" => "success", "message" => "delete item test success"]);
+                if (!empty($users)) {
+                    // Return success response with users data
+                    http_response_code(200); // HTTP Status 200: OK
+                    echo json_encode([
+                        "status" => "success",
+                        "message" => "Customers retrieved successfully.",
+                        "data" => $users
+                    ]);
+                } else {
+                    // If no users found, return a 404 response
+                    http_response_code(404); // HTTP Status 404: Not Found
+                    echo json_encode([
+                        "status" => "error",
+                        "message" => "No customers found."
+                    ]);
+                }
+            } catch (Exception $e) {
+                // Handle any errors with a 500 response
+                http_response_code(500); // HTTP Status 500: Internal Server Error
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "Failed to retrieve customers: " . $e->getMessage()
+                ]);
+            }
+        } else {
+            // If the request method is not GET, return a 405 response
+            http_response_code(405); // HTTP Status 405: Method Not Allowed
+            echo json_encode([
+                "status" => "error",
+                "message" => "Invalid request method. Only GET is allowed."
+            ]);
         }
     }
+
 
     /**
      * Handles a PUT request to update user details.
@@ -503,13 +898,63 @@ class AuthController {
         }
     }
 
-    // TODO: this is a PUT request to update fields to user profiles by admin given the user's username and details to update
-    // assignedTo: Hiraku
+    /**
+     * Handles a PUT request to update user profile by admin, given the user's username and details to update.
+     * assignedTo: Hiraku
+     */
     public function adminUpdateUserProfile() {
         if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-            echo json_encode(["status" => "success", "message" => "updateUserProfile test successful"]);
+            // Get the raw PUT data
+            $data = json_decode(file_get_contents('php://input'), true);
+
+            // Check if at least one of the fields is provided
+            if (isset($data['username']) && !empty($data['username'])) {
+                $username = $data['username'];
+                $fullName = isset($data['fullName']) ? $data['fullName'] : null;
+                $address = isset($data['address']) ? $data['address'] : null;
+                $cardNum = isset($data['card_num']) ? $data['card_num'] : null;
+                $cvv = isset($data['cvv']) ? $data['cvv'] : null;
+                $expiry = isset($data['expiry']) ? $data['expiry'] : null;
+                $phone = isset($data['phone']) ? $data['phone'] : null;
+
+                // Check if at least one field is not null
+                if (is_null($fullName) && is_null($address) && is_null($cardNum) && is_null($cvv) && is_null($expiry) && is_null($phone)) {
+                    // If all fields are null, return an error
+                    echo json_encode(["status" => "error", "message" => "No fields provided for update"]);
+                    return;
+                }
+
+                // Populate Profile model with the updated details
+                $profile = new Profile(
+                    $username,   // Username to identify the user
+                    $fullName,   // Full Name (can be null)
+                    $address,    // Address (can be null)
+                    $cardNum,    // Card Number (can be null)
+                    $cvv,        // CVV (can be null)
+                    $expiry,     // Expiry (can be null)
+                    $phone       // Phone (can be null)
+                );
+
+                try {
+                    // Call the adminDAO to update the customer records in the database
+                    $result = $this->adminDAO->updateCustomerRecords($profile);
+
+                    // Return a success response
+                    echo json_encode(["status" => "success", "message" => "User profile updated successfully", "data" => $result]);
+                } catch (Exception $e) {
+                    // Handle any exceptions
+                    echo json_encode(["status" => "error", "message" => "Error updating profile: " . $e->getMessage()]);
+                }
+            } else {
+                // If username is missing, return an error
+                echo json_encode(["status" => "error", "message" => "Username is required"]);
+            }
+        } else {
+            // If not a PUT request, return an error
+            echo json_encode(["status" => "error", "message" => "Invalid request method"]);
         }
     }
+
 
 }
 

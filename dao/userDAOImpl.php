@@ -250,6 +250,7 @@ class UserDAOImpl implements UserDAO {
      * @param string $userName - The username for which to retrieve the purchase history
      * @return array - An array of Payment objects, each containing the associated transactions
      */
+    /*
     public function getPurchaseHistory($userName) {
         try {
             // Step 1: Retrieve all transactions associated with the userName
@@ -277,7 +278,7 @@ class UserDAOImpl implements UserDAO {
             echo "Error fetching purchase history: " . $e->getMessage();
             return [];
         }
-    }
+    }*/
 
 
 
@@ -327,5 +328,192 @@ class UserDAOImpl implements UserDAO {
             return false;
         }
     }
+
+    /**
+     * Retrieves a list of transactions for a specific user and groups them by transaction ID.
+     * 
+     * @param string $userName The username to fetch transactions for.
+     *
+     * @return array An array of Payment objects, each containing related transactions.
+     */
+    public function getUserTransactions($userName) {
+        // Initialize an empty array to hold payment objects
+        $payments = [];
+    
+        try {
+            // Fetch transactions for the given username
+            $sql = "SELECT * FROM Transaction WHERE userName = :userName ORDER BY trans_id ASC";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->bindParam(':userName', $userName);
+            $stmt->execute();
+    
+            // Fetch all transactions for the user
+            $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+            // Group transactions by trans_id
+            $groupedTransactions = [];
+            foreach ($transactions as $transaction) {
+                $transId = $transaction['trans_id'];
+                // Create Transaction object
+                $transactionModel = new Transaction(
+                    $transaction['trans_id'],
+                    $transaction['item_id'],
+                    $transaction['userName'],
+                    $transaction['quantity'],
+                    $transaction['date']
+                );
+
+                $transactionModel->setItemPrice($transaction['price']);
+    
+                // Group by trans_id
+                if (!isset($groupedTransactions[$transId])) {
+                    $groupedTransactions[$transId] = [];
+                }
+                $groupedTransactions[$transId][] = $transactionModel;
+            }
+    
+            // Create Payment objects and add corresponding transactions
+            foreach ($groupedTransactions as $transId => $transactions) {
+                // Fetch payment details for the trans_id
+                $sql2 = "SELECT trans_id, card_num, cvv, expiry, total_price, fullName, date 
+                         FROM Payment WHERE trans_id = :trans_id AND processed = 1";
+                $stmt = $this->pdo->prepare($sql2);
+                $stmt->bindParam(':trans_id', $transId);
+                $stmt->execute();
+    
+                // Fetch the result as an associative array
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+                // If no processed payment is found, skip to the next group
+                if (!$result) {
+                    continue;
+                }
+    
+                // Populate variables with the values from the result
+                $cardNum = $result['card_num'];
+                $cvv = $result['cvv'];
+                $expiry = $result['expiry'];
+                $totalPrice = $result['total_price'];
+                $date = $result['date'];
+                $fullName = $result['fullName'];
+                $processed = $result['processed'];
+    
+                // Create a Payment object
+                $payment = new Payment(
+                    $transId,
+                    $cardNum,
+                    $cvv,
+                    $expiry,
+                    $totalPrice,
+                    $processed, // Processed is always true here
+                    $date,
+                    [] // Start with an empty transaction array
+                );
+    
+                // Add transactions to the Payment object
+                foreach ($transactions as $transaction) {
+                    $payment->addTransaction($transaction);
+                }
+    
+                // Set the full name in the Payment object
+                $payment->setFullName($fullName);
+    
+                // Add the populated Payment object to the payments array
+                $payments[] = $payment;
+            }
+    
+            // Return the list of payment objects
+            return $payments;
+    
+        } catch (PDOException $e) {
+            // Handle any errors
+            echo json_encode(["status" => "error", "message" => "Failed to retrieve transactions: " . $e->getMessage()]);
+            return [];
+        }
+    }
+    
+
+    /**
+     * Adds a payment and its associated transactions to the database.
+     *
+     * This function performs the following:
+     * 1. Inserts payment information into the `Payment` table.
+     * 2. Inserts each transaction associated with the payment into the `Transaction` table.
+     * 3. Uses a database transaction to ensure both operations succeed together. If any error occurs, the transaction is rolled back.
+     *
+     * @param Payment $payment The Payment object containing payment details and associated transactions.
+     *
+     * @return array An associative array indicating the status and message of the operation:
+     *               - "status" => "success" or "error"
+     *               - "message" => A success or error message.
+     *
+     * @throws Exception If any database operation fails, the exception message will be included in the error response.
+     * assignedTo: Hiraku
+     */
+    public function addUserTransaction(Payment $payment) {
+    
+        $transId = $payment->getTransId();
+        $cardNum = $payment->getCardNum();
+        $cvv = $payment->getCvv();
+        $expiry = $payment->getExpiry();
+        $totalPrice = $payment->getTotalPrice();
+        $fullName = $payment->getFullName();
+        $transactions = $payment->getTransactions(); // Array of Transaction objects
+    
+        try {
+            // Start a transaction to ensure both operations (Payment and Transactions) succeed together
+            $this->pdo->beginTransaction();
+    
+            // Insert the payment information into the Payment table
+            $sql = "INSERT INTO Payment (card_num, cvv, expiry, total_price, processed, fullName) 
+                    VALUES (:card_num, :cvv, :expiry, :total_price, 1, :fullName)"; // processed is set to 1 (successful)
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->bindParam(':card_num', $cardNum);
+            $stmt->bindParam(':cvv', $cvv);
+            $stmt->bindParam(':expiry', $expiry);
+            $stmt->bindParam(':total_price', $totalPrice);
+            $stmt->bindParam(':fullName', $fullName);
+    
+            // Execute the payment insertion
+            $stmt->execute();
+            // Get the last inserted ID (trans_id)
+            $transId = $this->pdo->lastInsertId();
+
+    
+            // Insert each transaction associated with the payment into the Transaction table
+            foreach ($transactions as $transaction) {
+                $itemId = $transaction->getItemId();
+                $userName = $transaction->getUserName();
+                $quantity = $transaction->getQuantity();
+                $price = $transaction->getItemPrice();
+    
+                // Insert each transaction into the Transaction table
+                $sql = "INSERT INTO Transaction (trans_id, item_id, userName, quantity, price) 
+                        VALUES (:trans_id, :item_id, :userName, :quantity, :price)";
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->bindParam(':trans_id', $transId);
+                $stmt->bindParam(':item_id', $itemId);
+                $stmt->bindParam(':userName', $userName);
+                $stmt->bindParam(':quantity', $quantity);
+                $stmt->bindParam(':price', $price);
+    
+                $stmt->execute();
+            }
+    
+            // Commit the transaction if all insertions were successful
+            $this->pdo->commit();
+    
+            // Return success message
+            return ["status" => "success", "message" => "Payment and transactions added successfully"];
+        } catch (Exception $e) {
+            // If an error occurs, rollback the transaction
+            $this->pdo->rollBack();
+    
+            // Return failure message
+            return ["status" => "error", "message" => "Error: " . $e->getMessage()];
+        }
+    }    
+    
+
 }
 ?>

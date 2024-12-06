@@ -43,7 +43,7 @@ interface UserDAO {
      * @param string $userName - The username whose history is retrieved
      * @return array - An array of Transaction objects
      */
-    public function getPurchaseHistory($userName);
+   // public function getPurchaseHistory($userName);
 
     /**
      * Updates null fields in the profile for a specific user.
@@ -51,5 +51,36 @@ interface UserDAO {
      * @return bool - Returns true if the update was successful, otherwise false
      */
     public function updateProfileFields(Profile $profile);
+
+     /**
+     * Retrieves a list of transactions for a specific user and groups them by transaction ID.
+     * 
+     * @param string $userName The username to fetch transactions for.
+     * @param string $cardNum The credit card number associated with the payment.
+     * @param string $cvv The CVV associated with the payment.
+     * @param string $expiry The expiration date of the credit card.
+     * @param string $fullName The full name associated with the payment.
+     * @return array An array of Payment objects, each containing related transactions.
+     */
+    public function getUserTransactions($userName, $cardNum, $cvv, $expiry, $fullName);
+
+     /**
+     * Adds a payment and its associated transactions to the database.
+     *
+     * This function performs the following:
+     * 1. Inserts payment information into the `Payment` table.
+     * 2. Inserts each transaction associated with the payment into the `Transaction` table.
+     * 3. Uses a database transaction to ensure both operations succeed together. If any error occurs, the transaction is rolled back.
+     *
+     * @param Payment $payment The Payment object containing payment details and associated transactions.
+     *
+     * @return array An associative array indicating the status and message of the operation:
+     *               - "status" => "success" or "error"
+     *               - "message" => A success or error message.
+     *
+     * @throws Exception If any database operation fails, the exception message will be included in the error response.
+     * assignedTo: Hiraku
+     */
+    public function addUserTransaction(Payment $payment);
 }
 ?>

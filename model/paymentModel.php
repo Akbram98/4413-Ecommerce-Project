@@ -39,7 +39,7 @@ class Payment {
         $cardNum = null,
         $cvv = null,
         $expiry = null,
-        $totalPrice = null,
+        $totalPrice = 0.00,
         $processed = null,
         $date = null,
         $transactions = []
@@ -93,6 +93,19 @@ class Payment {
     }
 
     public function setTotalPrice($totalPrice) {
+        $this->totalPrice = $totalPrice;
+    }
+
+    public function calculateTotalPrice() {
+        $totalPrice = 0.0;
+    
+        // Loop through each transaction and calculate the total price
+        foreach ($this->transactions as $transaction) {
+            // Assuming you have access to an Item class to get the price of the item
+            $itemPrice = $this->getItemPrice($transaction->getItemId()); // Method to fetch the price of the item by item_id
+            $totalPrice += transaction->getItemPrice() * $transaction->getQuantity();
+        }
+
         $this->totalPrice = $totalPrice;
     }
 

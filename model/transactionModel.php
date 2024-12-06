@@ -22,6 +22,7 @@ class Transaction {
     private $userName;
     private $quantity;
     private $date;
+    private $itemPrice = 0.00;
 
     // Constructor
     public function __construct($transId = null, $itemId = null, $userName = null, $quantity = null, $date = null) {
@@ -36,6 +37,14 @@ class Transaction {
 
     public function getTransId() {
         return $this->transId;
+    }
+
+    public function setItemPrice($itemPrice){
+        $this->itemPrice = $itemPrice;
+    }
+
+    public function getItemPrice(){
+        return $this->itemPrice;
     }
 
     public function getItemId() {

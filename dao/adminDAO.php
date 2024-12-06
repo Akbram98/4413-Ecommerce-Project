@@ -63,4 +63,20 @@ interface AdminDAO {
      */
     public function updateCustomerRecords(Profile $profile);
 }
+
+    /**
+     * Updates the fields of an item in the Inventory table.
+     *
+     * This method updates all columns in the Inventory table for a specific item,
+     * identified by its `itemId`. It assumes that all fields of the provided 
+     * `Item` object are non-null and valid. 
+     *
+     * @param Item $item The item object containing updated values to be saved.
+     * 
+     * @return bool Returns true if the update is successful, false otherwise.
+     * 
+     * @throws PDOException If a database error occurs during the update process.
+     */
+
+     public function updateItemFields(Item $item);
 ?>

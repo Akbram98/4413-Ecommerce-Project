@@ -23,63 +23,72 @@ class AdminDAOImpl implements AdminDAO {
      * Retrieves all payments from the Payment table, including the associated transactions for each payment.
      * @return array - An array of PaymentModel objects, each containing an array of TransactionModel objects
      */
-    public function getSalesHistory() {
-        try {
-            $salesHistory = [];
+    /**
+ * Retrieves the sales history, grouping transactions by their payment (trans_id).
+ *
+ * @return array An array of Payment objects, each containing a list of associated transactions.
+ */
+public function getSalesHistory() {
+    try {
+        $salesHistory = [];
 
-            // Query to get all payments from the Payment table
-            $paymentQuery = "SELECT * FROM Payment";
-            $stmt = $this->pdo->prepare($paymentQuery);
+        // Query to get all payments from the Payment table
+        $paymentQuery = "SELECT * FROM Payment";
+        $stmt = $this->pdo->prepare($paymentQuery);
+        $stmt->execute();
+        $paymentRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($paymentRows as $paymentRow) {
+            // Create a Payment object for each payment
+            $payment = new Payment(
+                $paymentRow['trans_id'],
+                $paymentRow['card_num'],
+                $paymentRow['cvv'],
+                $paymentRow['expiry'],
+                $paymentRow['total_price'],
+                $paymentRow['processed'],
+                $paymentRow['date']
+            );
+
+            // Query to get transactions related to this payment
+            $transactionQuery = "SELECT * FROM Transaction WHERE trans_id = :trans_id ORDER BY trans_id ASC";
+            $stmt = $this->pdo->prepare($transactionQuery);
+            $stmt->bindParam(':trans_id', $paymentRow['trans_id']);
             $stmt->execute();
-            $paymentRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $transactionRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            foreach ($paymentRows as $paymentRow) {
-                // Create a PaymentModel for each payment
-                $payment = new Payment(
-                    $paymentRow['trans_id'],
-                    $paymentRow['card_num'],
-                    $paymentRow['cvv'],
-                    $paymentRow['expiry'],
-                    $paymentRow['total_price'],
-                    $paymentRow['processed'],
-                    $paymentRow['date']
+            // Array to store transactions associated with this payment
+            $transactions = [];
+            foreach ($transactionRows as $transactionRow) {
+                // Create a Transaction object for each transaction
+                $transaction = new Transaction(
+                    $transactionRow['trans_id'],
+                    $transactionRow['item_id'],
+                    $transactionRow['userName'],
+                    $transactionRow['quantity'],
+                    $transactionRow['date']
                 );
 
-                // Query to get transactions related to this payment
-                $transactionQuery = "SELECT * FROM Transaction WHERE trans_id = :trans_id";
-                $stmt = $this->pdo->prepare($transactionQuery);
-                $stmt->bindParam(':trans_id', $paymentRow['trans_id']);
-                $stmt->execute();
-                $transactionRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                $transactions = new Transaction();
-                foreach ($transactionRows as $transactionRow) {
-                    // Create a TransactionModel for each transaction
-                    $transaction = new TransactionModel(
-                        $transactionRow['trans_id'],
-                        $transactionRow['item_id'],
-                        $transactionRow['userName'],
-                        $transactionRow['quantity'],
-                        $transactionRow['date']
-                    );
-                    $transactions.addItem($transaction);
-                }
-
-                // Set the array of transactions in the PaymentModel
-                $payment->setTransactions($transactions);
-
-                // Add the PaymentModel to the sales history
-                $salesHistory[] = $payment;
+                $transaction->setItemPrice($transactionRow['price']);
+                $transactions[] = $transaction; // Add transaction to the list
             }
 
-            return $salesHistory;
+            // Set the array of transactions in the Payment object
+            $payment->setTransactions($transactions);
 
-        } catch (PDOException $e) {
-            // Handle exceptions (log error, rethrow, etc.)
-            echo "Error retrieving sales history: " . $e->getMessage();
-            return [];
+            // Add the Payment object to the sales history
+            $salesHistory[] = $payment;
         }
+
+        return $salesHistory;
+
+    } catch (PDOException $e) {
+        // Handle exceptions (log error, rethrow, etc.)
+        echo "Error retrieving sales history: " . $e->getMessage();
+        return [];
     }
+}
+
 
     /**
      * Retrieves all users and their associated profiles from the User and Profile tables.
@@ -378,5 +387,59 @@ class AdminDAOImpl implements AdminDAO {
             return false;
         }
     }
+
+    /**
+     * Updates the fields of an item in the Inventory table.
+     *
+     * This method updates all columns in the Inventory table for a specific item,
+     * identified by its `itemId`. It assumes that all fields of the provided 
+     * `Item` object are non-null and valid. 
+     *
+     * @param Item $item The item object containing updated values to be saved.
+     * 
+     * @return bool Returns true if the update is successful, false otherwise.
+     * 
+     * @throws PDOException If a database error occurs during the update process.
+     */
+
+    public function updateItemFields(Item $item) {
+        try {
+            // SQL query with placeholders for all fields
+            $sql = "UPDATE Inventory SET 
+                        name = ?,
+                        price = ?,
+                        description = ?,
+                        brand = ?,
+                        date = ?,
+                        quantity = ?,
+                        image = ?
+                    WHERE itemId = ?";
+    
+            // Prepare the values for binding
+            $values = [
+                $item->getName(),
+                $item->getPrice(),
+                $item->getDescription(),
+                $item->getBrand(),
+                $item->getDate(),
+                $item->getQuantity(),
+                $item->getImage(),
+                $item->getItemId()
+            ];
+    
+            // Prepare and execute the statement
+            $stmt = $this->connection->prepare($sql);
+            $result = $stmt->execute($values);
+    
+            return $result;
+        } catch (PDOException $e) {
+            // Log the exception or handle it as needed
+            error_log("Failed to update item: " . $e->getMessage());
+    
+            // Optionally, rethrow the exception or return false
+            return false;
+        }
+    }
+    
 }
 ?>
