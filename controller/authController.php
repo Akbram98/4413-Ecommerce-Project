@@ -363,8 +363,12 @@ class AuthController {
     public function getItems() {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
+            //Call getAllItems() from the itemDAO
             $items = $this->itemDAO->getAllItems();
             header('Content-Type: application/json');
+
+            //Checks if $items is null. If not return $items and set response code to 200.
+            //If it is false then set the response code to 404
             if($items){
                 http_response_code(200);
             echo json_encode(["status" => "success", "items" => $items]);
@@ -373,6 +377,7 @@ class AuthController {
                 echo json_encode(["status" => "error", "message" => "Items not found"]);
                 
             }
+        //If invalid request method is used then set the response code to 405
         }else{
             http_response_code(405);
             echo json_encode(["status" => "error", "message" => "Invalid request method. Use GET"]);
@@ -397,9 +402,13 @@ class AuthController {
     public function adminGetAllTransactions() {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
+            //Call getSalesHistory from adminDAO
             $sales = $this->adminDAO->getSalesHistory();
 
             header('Content-Type: application/json');
+
+            //Check if $sales is null. If not return $sales and set the response code to 200.
+            //If false response code is 404 
             if($sales){
 
                 http_response_code(200);
@@ -410,6 +419,8 @@ class AuthController {
                 http_response_code(404);
                 echo json_encode(["status" => "error", "message" => "Sales history not found"]);
             }
+
+            //If invalid request method is used response code is 405
         }else{
 
             http_response_code(405);
@@ -423,6 +434,9 @@ class AuthController {
      */
     public function adminGetCustomers() {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+
+            
+
             echo json_encode(["status" => "success", "message" => "delete item test success"]);
         }
     }
@@ -437,7 +451,55 @@ class AuthController {
     //assignedTo: Rasengan
     public function updateUserProfile() {
         if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-            echo json_encode(["status" => "success", "message" => "updateUserProfile test successful"]);
+            //get json body
+            $data = json_decode(file_get_contents('php://input'), true);
+
+            $userName = $data['userName'] ?? null;
+            $firstName = $data['firstName'] ?? null;
+            $lastName = $data['lastName'] ?? null;
+            $age = $data['age'] ?? null;
+            $street = $data['street'] ?? null;
+            $city = $data['city'] ?? null;
+            $province = $data['province'] ?? null;
+            $postal = $data['postal'] ?? null;
+            $cardNum = $data['card_num'] ?? null;
+            $cvv = $data['cvv'] ?? null;
+            $expiry = $data['expiry'] ?? null;
+
+            //create a Profile object
+            $userProfile = new Profile(
+                $userName,
+                $firstName,
+                $lastName,
+                $age,
+                $street,
+                $city,
+                $province,
+                $postal,
+                $cardNum,
+                $cvv,
+                $expiry);
+
+            //Call the updateProfileFields function in userDAO
+            $updateProfile = $this->userDAO->updateProfileFields($userProfile);
+
+            header('Content-Type: application/json');
+            
+            //Check if $updateProfile is null. If not http response code is 200.
+            //If false http response code is 404
+            if($updateProfile){
+                http_response_code(200);
+                echo json_encode(["status" => "success", "message" => "updateUserProfile test successful"]);
+            }else{
+                http_response_code(404);
+                echo json_encode(["status" => "error", "message" => "Profile not found"]);
+            }
+            
+
+        //If invalid request method is used set the response code to 405 
+        }else{
+            http_response_code(405);
+            echo json_encode(["status" => "error", "message" => "Invalid request method. Use PUT"]);
         }
     }
 
