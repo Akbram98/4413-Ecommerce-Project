@@ -215,7 +215,61 @@ class AuthController {
     //assignedTo: Rasengan
     public function adminAddItem() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            echo json_encode(["status" => "success", "message" => "admin add item test successful"]);
+            
+            
+            $item = null;
+
+            //getting fields from request body 
+
+            $itemid = $_POST['item_id'] ?? null;
+            $name = $_POST['name'] ?? null;
+            $price = $_POST['price'] ?? null;
+            $description = $_POST['description'] ?? null;
+            $brand = $_POST['brand'] ?? null;
+            $date = $_POST['date'] ?? null;
+            $quantity = $_POST['quantity'] ?? null;
+            $image = $_POST['image'] ?? null;
+            
+            
+            //checking if any fields are null
+            if($itemid && $name && $price && $description && $brand && $date && $quantity && $image){
+
+                //item object creation
+
+                $item = new Item(
+                    $itemid, 
+                    $name,
+                    $price,
+                    $description,
+                    $brand,
+                    $date,
+                    $quantity,
+                    $image);
+                 
+                    //Adding the item to the database
+                  $addedItem =  $this->adminDAO->addItem($item);
+                    header('Content-Type: application/json');
+                    
+                    //If success http response code is 200 else response code is 403
+                  if($addedItem){
+                    http_response_code(200);
+                    echo json_encode(["status" => "success", "message" => "admin add item test successful"]);
+                  }else{
+                    http_response_code(403);
+                    echo json_encode(["status" => "error", "message" => "item already exists"]); 
+                  }
+                  //if any of the fields are null then http response code 403 
+            }else{
+                http_response_code(400);
+                echo json_encode(["status" => "error", "message" => "all fields are required (itemid, name, price, description, brand, date, quantity, image)"]);
+            }
+
+            
+
+            //if incorrect request method then http response code is 405
+        }else{
+            http_response_code(405);
+            echo json_encode(["status" => "error", "message" => "Invalid request method. Use POST"]);
         }
     }
 
@@ -251,7 +305,41 @@ class AuthController {
      */
     public function adminDeleteItem() {
         if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
-            echo json_encode(["status" => "success", "message" => "delete item test success"]);
+
+            $data = json_decode(file_get_contents('php://input'), true);
+
+
+            $itemid = $data['item_id'] ?? null;
+           
+
+             //checking if itemid is null
+             if($itemid){    
+                
+                $deletedItem = $this->userDAO->deleteItem();
+                
+
+                header('Content-Type: application/json');
+
+                //Checks if the item has been deleted. On success http response code is 200. Else response code is 404
+                if($deletedItem){
+                    http_response_code(200);
+                    echo json_encode(["status" => "success", "message" => "delete item test success"]);
+                }else{
+                    http_response_code(404);
+                    echo json_encode(["status" => "error", "message" => "item not found"]);
+                }
+               
+                //If itemid is null http response code is 400
+            } else{
+                http_response_code(400);
+                echo json_encode(["status" => "error", "message" => "Item id is null"]);
+            }
+
+
+        //if request method is not DELETE http response code is 405
+        }else{
+            http_response_code(405);
+            echo json_encode(["status" => "error", "message" => "Invalid request method. Use DELETE"]);
         }
     }
 
@@ -274,7 +362,20 @@ class AuthController {
     //TODO: the function you should call is in the ItemDAO 
     public function getItems() {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-            echo json_encode(["status" => "success", "message" => "get item test success"]);
+
+            $items = $this->itemDAO->getAllItems();
+            header('Content-Type: application/json');
+            if($items){
+                http_response_code(200);
+            echo json_encode(["status" => "success", "items" => $items]);
+            }else{
+                http_response_code(404);
+                echo json_encode(["status" => "error", "message" => "Items not found"]);
+                
+            }
+        }else{
+            http_response_code(405);
+            echo json_encode(["status" => "error", "message" => "Invalid request method. Use GET"]);
         }
     }
 
@@ -295,7 +396,24 @@ class AuthController {
      */
     public function adminGetAllTransactions() {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-            echo json_encode(["status" => "success", "message" => "get item test success"]);
+
+            $sales = $this->adminDAO->getSalesHistory();
+
+            header('Content-Type: application/json');
+            if($sales){
+
+                http_response_code(200);
+                echo json_encode(["status" => "success", "sales" => $sales]);
+            
+            }else{
+                
+                http_response_code(404);
+                echo json_encode(["status" => "error", "message" => "Sales history not found"]);
+            }
+        }else{
+
+            http_response_code(405);
+            echo json_encode(["status" => "error", "message" => "Invalid request method. Use GET"]);
         }
     }
 
