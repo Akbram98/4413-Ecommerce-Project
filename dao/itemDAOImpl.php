@@ -47,7 +47,7 @@ class ItemDAOImpl implements ItemDAO {
                 $inventory->addItem($item);
             }
 
-            return $inventory.getItems();
+            return $inventory;
 
         } catch (PDOException $e) {
             // Handle exceptions (log error, rethrow, etc.)
@@ -67,7 +67,7 @@ class ItemDAOImpl implements ItemDAO {
 
             // Query to get all items from the Inventory table
             $query = "SELECT * FROM Inventory WHERE item_id = :itemid";
-            $stmt = $this->pdo->prepare(query);
+            $stmt = $this->pdo->prepare($query);
             $stmt->bindParam(':itemid', $itemid);
             $stmt->execute();
             $itemRow = $stmt->fetch(PDO::FETCH_ASSOC);

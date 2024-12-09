@@ -62,7 +62,7 @@ interface AdminDAO {
      * @return bool - Returns true if the customer information was updated successfully.
      */
     public function updateCustomerRecords(Profile $profile);
-}
+
 
     /**
      * Updates the fields of an item in the Inventory table.
@@ -79,4 +79,5 @@ interface AdminDAO {
      */
 
      public function updateItemFields(Item $item);
+}
 ?>

@@ -16,7 +16,7 @@
  * - Getters and setters for all properties to access and modify transaction data.
  */
 
-class Transaction {
+class Transaction implements JsonSerializable {
     private $transId;   
     private $itemId;    
     private $userName;
@@ -69,6 +69,19 @@ class Transaction {
 
     public function setDate($date) {
         $this->date = $date;
+    }
+
+    // Implement jsonSerialize to define JSON structure
+    public function jsonSerialize() {
+        return [
+            "transId" => $this->transId,
+            "itemId" => $this->itemId,
+            "userName" => $this->userName,
+            "quantity" => $this->quantity,
+            "date" => $this->date,
+            "itemPrice" => $this->itemPrice,
+            "totalPrice" => $this->getTotalPrice()  // Include total price in JSON representation
+        ];
     }
 }
 ?>

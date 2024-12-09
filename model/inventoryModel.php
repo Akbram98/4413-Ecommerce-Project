@@ -15,7 +15,7 @@
 
 include_once 'itemModel.php';
 
-class Inventory {
+class Inventory implements JsonSerializable {
     private $items; // Array of Item objects
 
     // Constructor
@@ -31,6 +31,14 @@ class Inventory {
     // Get all items in the inventory
     public function getItems() {
         return $this->items;
+    }
+
+    // Implement jsonSerialize to define the JSON structure
+    public function jsonSerialize() {
+        // Convert each Item object to JSON (assuming Item class is JsonSerializable)
+        return array_map(function($item) {
+            return $item->jsonSerialize(); // Calling jsonSerialize method on each Item object
+        }, $this->items);
     }
 }
 ?>

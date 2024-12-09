@@ -19,7 +19,7 @@
  * - Getters and setters for each property to access and modify item data.
  */
 
-class Item {
+class Item implements JsonSerializable{
     private $itemId;
     private $name;
     private $price;
@@ -114,6 +114,20 @@ class Item {
 
     public function setImage($image) {
         $this->image = $image;
+    }
+
+     // Convert the fields to a JSON object
+     public function jsonSerialize() {
+        return [
+            "itemId" => $this->itemId,
+            "name" => $this->name,
+            "price" => $this->price,
+            "description" => $this->description,
+            "brand" => $this->brand,
+            "date" => $this->date,
+            "quantity" => $this->quantity,
+            "image" => $this->image
+        ];
     }
 }
 ?>

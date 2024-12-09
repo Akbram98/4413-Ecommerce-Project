@@ -7,6 +7,7 @@ include_once '../model/transactionModel.php';
 include_once '../model/profileModel.php';
 include_once '../model/inventoryModel.php';
 include_once '../model/itemModel.php';
+include_once '../model/customersModel.php';
 
 class AdminDAOImpl implements AdminDAO {
     private $pdo;
@@ -95,14 +96,15 @@ public function getSalesHistory() {
      * @return array - An array of UserModel objects, each containing a ProfileModel
      */
     public function getAllUsers() {
+        $customers = new Customers();
         try {
-            $usersWithProfiles = [];
-
             // Query to get all users from the User table
             $userQuery = "SELECT * FROM User";
             $stmt = $this->pdo->prepare($userQuery);
             $stmt->execute();
             $userRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $count = 0;
 
             foreach ($userRows as $userRow) {
                 // Create a UserModel for each user
@@ -142,11 +144,14 @@ public function getSalesHistory() {
                 }
 
                 // Add the UserModel to the users array
-                $usersWithProfiles[] = $user;
+                $customers->addUser($user);
+
+
             }
 
-            return $usersWithProfiles;
+            
 
+            return $customers;
         } catch (PDOException $e) {
             // Handle exceptions (log error, rethrow, etc.)
             echo "Error retrieving users with profiles: " . $e->getMessage();
@@ -239,8 +244,8 @@ public function getSalesHistory() {
     * assignedTo: Hiraku
     */
     public function addItem(Item $item): bool {
-        $query = "INSERT INTO Inventory (name, price, description, brand, date, quantity, image)
-                  VALUES (:name, :price, :description, :brand, :date, :quantity, :image)";
+        $query = "INSERT INTO Inventory (name, price, description, brand, quantity, image)
+                  VALUES (:name, :price, :description, :brand, :quantity, :image)";
         
         $stmt = $this->pdo->prepare($query);
 
@@ -248,7 +253,6 @@ public function getSalesHistory() {
         $stmt->bindValue(':price', $item->getPrice());
         $stmt->bindValue(':description', $item->getDescription());
         $stmt->bindValue(':brand', $item->getBrand());
-        $stmt->bindValue(':date', $item->getDate());
         $stmt->bindValue(':quantity', $item->getQuantity());
         $stmt->bindValue(':image', $item->getImage());
 
@@ -402,44 +406,63 @@ public function getSalesHistory() {
      * @throws PDOException If a database error occurs during the update process.
      */
 
-    public function updateItemFields(Item $item) {
+     public function updateItemFields(Item $item) {
         try {
-            // SQL query with placeholders for all fields
-            $sql = "UPDATE Inventory SET 
-                        name = ?,
-                        price = ?,
-                        description = ?,
-                        brand = ?,
-                        date = ?,
-                        quantity = ?,
-                        image = ?
-                    WHERE itemId = ?";
+            // Start constructing the SQL query
+            $sql = "UPDATE Inventory SET ";
+            $fields = [];
+            $values = [];
     
-            // Prepare the values for binding
-            $values = [
-                $item->getName(),
-                $item->getPrice(),
-                $item->getDescription(),
-                $item->getBrand(),
-                $item->getDate(),
-                $item->getQuantity(),
-                $item->getImage(),
-                $item->getItemId()
-            ];
+            // Dynamically build the query based on non-null fields
+            if ($item->getName() !== null) {
+                $fields[] = "name = ?";
+                $values[] = $item->getName();
+            }
+            if ($item->getPrice() !== null) {
+                $fields[] = "price = ?";
+                $values[] = $item->getPrice();
+            }
+            if ($item->getDescription() !== null) {
+                $fields[] = "description = ?";
+                $values[] = $item->getDescription();
+            }
+            if ($item->getBrand() !== null) {
+                $fields[] = "brand = ?";
+                $values[] = $item->getBrand();
+            }
+            if ($item->getQuantity() !== null) {
+                $fields[] = "quantity = ?";
+                $values[] = $item->getQuantity();
+            }
+            if ($item->getImage() !== null) {
+                $fields[] = "image = ?";
+                $values[] = $item->getImage();
+            }
+    
+            // Ensure there is at least one field to update
+            if (empty($fields)) {
+                throw new Exception("No fields to update");
+            }
+    
+            // Join the fields with commas and complete the SQL statement
+            $sql .= implode(", ", $fields) . " WHERE item_id = ?";
+            $values[] = $item->getItemId(); // Add itemId to the values array
     
             // Prepare and execute the statement
-            $stmt = $this->connection->prepare($sql);
+            $stmt = $this->pdo->prepare($sql);
             $result = $stmt->execute($values);
     
             return $result;
         } catch (PDOException $e) {
             // Log the exception or handle it as needed
             error_log("Failed to update item: " . $e->getMessage());
-    
-            // Optionally, rethrow the exception or return false
+            return false;
+        } catch (Exception $e) {
+            // Handle exceptions for invalid updates
+            error_log("Failed to update item: " . $e->getMessage());
             return false;
         }
-    }
+    }    
     
 }
 ?>

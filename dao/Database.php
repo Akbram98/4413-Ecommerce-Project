@@ -16,10 +16,11 @@
  */
 
 class Database {
-    private $host = 'localhost';    // Database host (usually 'localhost')
+    private $host = 'dpg-ctbat7e8ii6s73fvqtm0-a';    // Database host (usually 'localhost')
     private $db_name = 'eecs4413';  // Database name
-    private $username = 'root';     // Database username
-    private $password = '';         // Database password
+    private $port = 5432;
+    private $username = 'eecs4413_user';     // Database username
+    private $password = '2jje6BSNZh847cjW3GBOMbfY9DHo7iYP';         // Database password
     private $conn = null;           // Database connection object
 
     /**
@@ -36,7 +37,7 @@ class Database {
         if ($this->conn === null) {
             try {
                 // Set the DSN (Data Source Name)
-                $dsn = "mysql:host={$this->host};dbname={$this->db_name}";
+                $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->db_name}";
                 
                 // Create a new PDO instance
                 $this->conn = new PDO($dsn, $this->username, $this->password);

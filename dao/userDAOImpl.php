@@ -283,51 +283,83 @@ class UserDAOImpl implements UserDAO {
 
 
     /**
-     * Updates null fields in the Profile table for a specific user.
-     * @param Profile $profile - The ProfileModel containing updated data
-     * @return bool - Returns true if the update was successful, otherwise false
-     */
-    public function updateProfileFields(Profile $profile) {
-        try {
-            // Query to update only null fields in the Profile table
-            $updateQuery = "
-                UPDATE Profile
-                SET 
-                    firstName = COALESCE(firstName, :firstName),
-                    lastName = COALESCE(lastName, :lastName),
-                    age = COALESCE(age, :age),
-                    street = COALESCE(street, :street),
-                    city = COALESCE(city, :city),
-                    province = COALESCE(province, :province),
-                    postal = COALESCE(postal, :postal),
-                    card_num = COALESCE(card_num, :cardNum),
-                    cvv = COALESCE(cvv, :cvv),
-                    expiry = COALESCE(expiry, :expiry)
-                WHERE userName = :userName
-            ";
-            $stmt = $this->pdo->prepare($updateQuery);
+ * Updates fields in the Profile table for a specific user.
+ * Only non-null fields will be updated in the query.
+ * @param Profile $profile - The ProfileModel containing updated data
+ * @return bool - Returns true if the update was successful, otherwise false
+ */
+public function updateProfileFields(Profile $profile) {
+    try {
+        // Initialize the base query and parameters array
+        $updateQuery = "UPDATE Profile SET ";
+        $parameters = [];
 
-            // Bind parameters
-            $stmt->bindParam(':firstName', $profile->getFirstName());
-            $stmt->bindParam(':lastName', $profile->getLastName());
-            $stmt->bindParam(':age', $profile->getAge());
-            $stmt->bindParam(':street', $profile->getStreet());
-            $stmt->bindParam(':city', $profile->getCity());
-            $stmt->bindParam(':province', $profile->getProvince());
-            $stmt->bindParam(':postal', $profile->getPostal());
-            $stmt->bindParam(':cardNum', $profile->getCardNum());
-            $stmt->bindParam(':cvv', $profile->getCvv());
-            $stmt->bindParam(':expiry', $profile->getExpiry());
-            $stmt->bindParam(':userName', $profile->getUserName());
-
-            return $stmt->execute();
-
-        } catch (PDOException $e) {
-            // Handle exceptions (log error, rethrow, etc.)
-            echo "Error updating profile: " . $e->getMessage();
-            return false;
+        // Dynamically construct the query based on non-null fields
+        if (!is_null($profile->getFirstName())) {
+            $updateQuery .= "firstName = :firstName, ";
+            $parameters[':firstName'] = $profile->getFirstName();
         }
+        if (!is_null($profile->getLastName())) {
+            $updateQuery .= "lastName = :lastName, ";
+            $parameters[':lastName'] = $profile->getLastName();
+        }
+        if (!is_null($profile->getAge())) {
+            $updateQuery .= "age = :age, ";
+            $parameters[':age'] = $profile->getAge();
+        }
+        if (!is_null($profile->getStreet())) {
+            $updateQuery .= "street = :street, ";
+            $parameters[':street'] = $profile->getStreet();
+        }
+        if (!is_null($profile->getCity())) {
+            $updateQuery .= "city = :city, ";
+            $parameters[':city'] = $profile->getCity();
+        }
+        if (!is_null($profile->getProvince())) {
+            $updateQuery .= "province = :province, ";
+            $parameters[':province'] = $profile->getProvince();
+        }
+        if (!is_null($profile->getPostal())) {
+            $updateQuery .= "postal = :postal, ";
+            $parameters[':postal'] = $profile->getPostal();
+        }
+        if (!is_null($profile->getCardNum())) {
+            $updateQuery .= "card_num = :cardNum, ";
+            $parameters[':cardNum'] = $profile->getCardNum();
+        }
+        if (!is_null($profile->getCvv())) {
+            $updateQuery .= "cvv = :cvv, ";
+            $parameters[':cvv'] = $profile->getCvv();
+        }
+        if (!is_null($profile->getExpiry())) {
+            $updateQuery .= "expiry = :expiry, ";
+            $parameters[':expiry'] = $profile->getExpiry();
+        }
+
+        // Remove the trailing comma and space
+        $updateQuery = rtrim($updateQuery, ', ');
+
+        // Add the WHERE clause
+        $updateQuery .= " WHERE userName = :userName";
+        $parameters[':userName'] = $profile->getUserName();
+
+        // Prepare and execute the query
+        $stmt = $this->pdo->prepare($updateQuery);
+
+        // Bind parameters
+        foreach ($parameters as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
+        return $stmt->execute();
+
+    } catch (PDOException $e) {
+        // Handle exceptions (log error, rethrow, etc.)
+        echo "Error updating profile: " . $e->getMessage();
+        return false;
     }
+}
+
 
     /**
      * Retrieves a list of transactions for a specific user and groups them by transaction ID.
@@ -463,11 +495,50 @@ class UserDAOImpl implements UserDAO {
         try {
             // Start a transaction to ensure both operations (Payment and Transactions) succeed together
             $this->pdo->beginTransaction();
+            // Insert each transaction associated with the payment into the Transaction table
+            $firstTrans = true;
+            
+            $sql = "INSERT INTO Transaction (item_id, userName, quantity, price) 
+                        VALUES (:item_id, :userName, :quantity, :price)";
+                        
+            foreach ($transactions as $transaction) {
+                $itemId = $transaction->getItemId();
+                $userName = $transaction->getUserName();
+                $quantity = $transaction->getQuantity();
+                $price = $transaction->getItemPrice();
+
+                $stmt = $this->pdo->prepare($sql);
+
+                // Insert each transaction into the Transaction table
+
+                if(!$firstTrans)
+                    $stmt->bindParam(':trans_id', $transId); 
+
+                $stmt->bindParam(':item_id', $itemId);
+                $stmt->bindParam(':userName', $userName);
+                $stmt->bindParam(':quantity', $quantity);
+                $stmt->bindParam(':price', $price);
     
+                $stmt->execute();
+    
+                if($firstTrans){
+                    // Get the last inserted ID (trans_id)
+                    $transId = $this->pdo->lastInsertId();
+
+
+                    $sql = "INSERT INTO Transaction (trans_id, item_id, userName, quantity, price) 
+                        VALUES (:trans_id, :item_id, :userName, :quantity, :price)";
+
+                    $firstTrans = false;
+
+                }
+
+            }
             // Insert the payment information into the Payment table
-            $sql = "INSERT INTO Payment (card_num, cvv, expiry, total_price, processed, fullName) 
-                    VALUES (:card_num, :cvv, :expiry, :total_price, 1, :fullName)"; // processed is set to 1 (successful)
+            $sql = "INSERT INTO Payment (trans_id, card_num, cvv, expiry, total_price, processed, fullName) 
+                    VALUES (:trans_id, :card_num, :cvv, :expiry, :total_price, 1, :fullName)"; // processed is set to 1 (successful)
             $stmt = $this->pdo->prepare($sql);
+            $stmt->bindParam(':trans_id', $transId);
             $stmt->bindParam(':card_num', $cardNum);
             $stmt->bindParam(':cvv', $cvv);
             $stmt->bindParam(':expiry', $expiry);
@@ -476,41 +547,20 @@ class UserDAOImpl implements UserDAO {
     
             // Execute the payment insertion
             $stmt->execute();
-            // Get the last inserted ID (trans_id)
-            $transId = $this->pdo->lastInsertId();
-
-    
-            // Insert each transaction associated with the payment into the Transaction table
-            foreach ($transactions as $transaction) {
-                $itemId = $transaction->getItemId();
-                $userName = $transaction->getUserName();
-                $quantity = $transaction->getQuantity();
-                $price = $transaction->getItemPrice();
-    
-                // Insert each transaction into the Transaction table
-                $sql = "INSERT INTO Transaction (trans_id, item_id, userName, quantity, price) 
-                        VALUES (:trans_id, :item_id, :userName, :quantity, :price)";
-                $stmt = $this->pdo->prepare($sql);
-                $stmt->bindParam(':trans_id', $transId);
-                $stmt->bindParam(':item_id', $itemId);
-                $stmt->bindParam(':userName', $userName);
-                $stmt->bindParam(':quantity', $quantity);
-                $stmt->bindParam(':price', $price);
-    
-                $stmt->execute();
-            }
     
             // Commit the transaction if all insertions were successful
             $this->pdo->commit();
+
+
     
             // Return success message
-            return ["status" => "success", "message" => "Payment and transactions added successfully"];
+            return true;
         } catch (Exception $e) {
             // If an error occurs, rollback the transaction
             $this->pdo->rollBack();
     
             // Return failure message
-            return ["status" => "error", "message" => "Error: " . $e->getMessage()];
+            return false;
         }
     }    
     

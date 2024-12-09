@@ -24,7 +24,7 @@
  * - Getters and setters for all properties to access and modify profile data.
  */
 
-class Profile {
+class Profile implements JsonSerializable {
     private $userName;   // Foreign key, also NOT NULL
     private $firstName;  // NOT NULL
     private $lastName;   // NOT NULL
@@ -152,6 +152,28 @@ class Profile {
 
     public function setExpiry($expiry) {
         $this->expiry = $expiry;
+    }
+
+     // Implement the JsonSerializable interface method
+     public function jsonSerialize() {
+        $data = [
+            'userName' => $this->userName,
+            'firstName' => $this->firstName,
+            'lastName' => $this->lastName,
+            'age' => $this->age,
+            'street' => $this->street,
+            'city' => $this->city,
+            'province' => $this->province,
+            'postal' => $this->postal,
+            'cardNum' => $this->cardNum,
+            'cvv' => $this->cvv,
+            'expiry' => $this->expiry
+        ];
+
+        // Remove any null fields
+        return array_filter($data, function ($value) {
+            return !is_null($value);
+        });
     }
 }
 

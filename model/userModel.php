@@ -87,5 +87,62 @@ class User {
             throw new Exception('Invalid ProfileModel object');
         }
     }
+
+    public function toJson() {
+        // Initialize the profile data array
+        $profileData = [];
+    
+        // Check if the user has a profile and build the profile JSON object, checking for null values
+        if ($this->getProfile()) {
+            $profile = $this->getProfile();
+    
+            // Add profile fields only if they are not null
+            if ($profile->getUserName() !== null) {
+                $profileData["userName"] = $profile->getUserName();
+            }
+            if ($profile->getFirstName() !== null) {
+                $profileData["firstName"] = $profile->getFirstName();
+            }
+            if ($profile->getLastName() !== null) {
+                $profileData["lastName"] = $profile->getLastName();
+            }
+            if ($profile->getAge() !== null) {
+                $profileData["age"] = $profile->getAge();
+            }
+            if ($profile->getStreet() !== null) {
+                $profileData["street"] = $profile->getStreet();
+            }
+            if ($profile->getCity() !== null) {
+                $profileData["city"] = $profile->getCity();
+            }
+            if ($profile->getProvince() !== null) {
+                $profileData["province"] = $profile->getProvince();
+            }
+            if ($profile->getPostal() !== null) {
+                $profileData["postal"] = $profile->getPostal();
+            }
+            if ($profile->getCardNum() !== null) {
+                $profileData["cardNum"] = $profile->getCardNum();
+            }
+            if ($profile->getCvv() !== null) {
+                $profileData["cvv"] = $profile->getCvv();
+            }
+            if ($profile->getExpiry() !== null) {
+                $profileData["expiry"] = $profile->getExpiry();
+            }
+        }
+    
+        // Manually build the user JSON object
+        $userJson = [
+            "userName" => $this->getUserName(),  // Call the function to get the userName
+            "password" => $this->getPassword(),  // Call the function to get the password
+            "salt" => $this->getSalt(),          // Call the function to get the salt
+            "lastLogon" => $this->getLastLogon(),// Call the function to get lastLogon
+            "profile" => $profileData            // Add the profile data (only fields that are not null)
+        ];
+    
+        return $userJson;
+    }
+    
 }
 ?>

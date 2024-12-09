@@ -48,7 +48,6 @@ class AuthController {
                 '/adminUpdateItem' => 'adminUpdateItem',
                 '/updateUser' => 'updateUserProfile',
                 '/adminUpdateUser' => 'adminUpdateUserProfile',
-                '/updateItemInventory' => 'updateItemInventory',
             ],
             'POST' => [
                 '/registerUser' => 'registerUser',
@@ -100,14 +99,17 @@ class AuthController {
 
             // Decode the JSON payload
             $data = json_decode($input, true);
+            header('Content-Type: application/json'); // set the content type
 
             $userName = $data['userName'] ?? null;
             $password = $data['password'] ?? null;
 
             if ($userName && $password) {
                 if($this->adminDAO->isAdmin($userName)){
-                    if($this->adminDAO->updateLastLogon($userName))
+                    if($this->adminDAO->updateLastLogon($userName)){
+                        http_response_code(200); // set the http response code
                         echo json_encode(["status" => "success", "message" => "admin"]);
+                    }
                     else
                         echo json_encode(["status" => "error", "message" => "admin login but last logon failed to update."]);
                     return;
@@ -116,7 +118,7 @@ class AuthController {
                 
                 // Register the user and profile
                 $isValidUser = $this->userDAO->validateUser($userName, $password);
-                header('Content-Type: application/json'); // set the content type
+                
                 if ($isValidUser) {
                     
                     if($this->userDAO->updateLastLogon($userName)){
@@ -215,10 +217,25 @@ class AuthController {
     public function adminAddItem() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
-            
+            header('Content-Type: application/json');
             $item = null;
 
             //getting fields from request body 
+            $userName = $_POST['userName'] ?? null;
+
+            if($userName){
+                if(!($this->adminDAO->isAdmin($userName))){
+                    http_response_code(401);
+                    echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
+                    return;
+                }
+            }
+            else{
+                http_response_code(400);
+                    echo json_encode(["status" => "fail", "message" => "userName must be provided to authenticate admin."]);
+                    return;
+            }
+
 
             $itemid = $_POST['item_id'] ?? null;
             $name = $_POST['name'] ?? null;
@@ -231,7 +248,7 @@ class AuthController {
             
             
             //checking if any fields are null
-            if($itemid && $name && $price && $description && $brand && $date && $quantity && $image){
+            if($name && $price && $description && $brand && $quantity && $image){
 
                 //item object creation
 
@@ -247,7 +264,6 @@ class AuthController {
                  
                     //Adding the item to the database
                   $addedItem =  $this->adminDAO->addItem($item);
-                    header('Content-Type: application/json');
                     
                     //If success http response code is 200 else response code is 403
                   if($addedItem){
@@ -296,37 +312,48 @@ class AuthController {
 
         if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             // Retrieve and decode the input data
-            parse_str(file_get_contents("php://input"), $inputData);
+            $input = file_get_contents("php://input");
 
-            // Validate required fields
-            if (!isset($inputData['itemId']) || 
-                !isset($inputData['name']) || 
-                !isset($inputData['price']) || 
-                !isset($inputData['description']) || 
-                !isset($inputData['brand']) || 
-                !isset($inputData['date']) || 
-                !isset($inputData['quantity']) || 
-                !isset($inputData['image'])) {
-                
-                http_response_code(400); // Bad Request
-                echo json_encode([
-                    "status" => "error",
-                    "message" => "Missing required fields"
-                ]);
-                return;
+            // Decode the JSON payload
+            $data = json_decode($input, true);
+            header('Content-Type: application/json'); // set the content type
+
+            $userName = $data['userName'] ?? null;
+
+            if($userName){
+                if(!($this->adminDAO->isAdmin($userName))){
+                    http_response_code(401);
+                    echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
+                    return;
+                }
             }
+            else{
+                http_response_code(400);
+                    echo json_encode(["status" => "fail", "message" => "userName must be provided to authenticate admin."]);
+                    return;
+            }
+
+
+
+            $itemid = $data['itemid'] ?? null;
+            $name = $data['name'] ?? null;
+            $price = $date['price'] ?? null;
+            $description = $data['description'] ?? null;
+            $brand = $data['brand'] ?? null;
+            $quantity = $data['quantity'] ?? null;
+            $image = $data['image'] ?? null;
 
             try {
                 // Create the Item object
                 $item = new Item(
-                    $inputData['itemId'],
-                    $inputData['name'],
-                    $inputData['price'],
-                    $inputData['description'],
-                    $inputData['brand'],
-                    $inputData['date'],
-                    $inputData['quantity'],
-                    $inputData['image']
+                    $itemid,
+                    $name,
+                    $price,
+                    $description,
+                    $brand,
+                    null,
+                    $quantity,
+                    $image
                 );
 
                 // Call the DAO's updateItemFields method
@@ -378,7 +405,7 @@ class AuthController {
      * @return void Outputs a JSON-encoded response.
      * assignTo: Hiraku
      */
-
+    /*
     public function updateItemInventory() {
         // Set response header
         header('Content-Type: application/json');
@@ -386,10 +413,32 @@ class AuthController {
         // Check if the request method is PUT
         if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             // Retrieve and decode the input data
-            parse_str(file_get_contents("php://input"), $inputData);
+            // Read the raw input stream
+            $input = file_get_contents("php://input");
+
+            // Decode the JSON payload
+            $data = json_decode($input, true);
+            header('Content-Type: application/json'); // set the content type
+
+            $itemid = $data['itemid'] ?? null;
+            $amount = $data['amount'] ?? null;
+            $userName = $data['userName'] ?? null;
+
+            if($userName){
+                if(!($this->adminDAO->isAdmin($userName))){
+                    http_response_code(401);
+                    echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
+                    return;
+                }
+            }
+            else{
+                http_response_code(400);
+                    echo json_encode(["status" => "fail", "message" => "userName must be provided to authenticate admin."]);
+                    return;
+            }
 
             // Validate required fields
-            if (!isset($inputData['itemId']) || !isset($inputData['amount'])) {
+            if (!($itemid) || !($amount)) {
                 http_response_code(400); // Bad Request
                 echo json_encode([
                     "status" => "error",
@@ -397,10 +446,6 @@ class AuthController {
                 ]);
                 return;
             }
-
-            // Extract the itemId and amount
-            $itemId = $inputData['itemId'];
-            $amount = $inputData['amount'];
 
             // Validate amount (it should be an integer and non-negative)
             if (!is_numeric($amount) || $amount <= 0) {
@@ -414,7 +459,7 @@ class AuthController {
 
             try {
                 // Call the function to update the item inventory
-                $result = $this->itemDAO->updateItemInventory($itemId, $amount);
+                $result = $this->itemDAO->updateItemInventory($itemid, $amount);
 
                 // Respond based on the result of the update
                 if ($result) {
@@ -446,7 +491,7 @@ class AuthController {
                 "message" => "Invalid request method"
             ]);
         }
-    }
+    }*/
 
 
     /**
@@ -460,22 +505,39 @@ class AuthController {
 
             $data = json_decode(file_get_contents('php://input'), true);
 
+            header('Content-Type: application/json');
 
             $itemid = $data['item_id'] ?? null;
+
+            $userName = $data['userName'] ?? null;
+
+            if($userName){
+                if(!($this->adminDAO->isAdmin($userName))){
+                    http_response_code(401);
+                    echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
+                    return;
+                }
+            }
+            else{
+                http_response_code(400);
+                    echo json_encode(["status" => "fail", "message" => "userName must be provided to authenticate admin."]);
+                    return;
+            }
            
 
              //checking if itemid is null
              if($itemid){    
                 
-                $deletedItem = $this->userDAO->deleteItem();
-                
+                $item = $this->itemDAO->getItemById($itemid);
 
-                header('Content-Type: application/json');
+                //$itemJson = json_encode($item);
+
+                $deletedItem = $this->adminDAO->deleteItem($itemid);
 
                 //Checks if the item has been deleted. On success http response code is 200. Else response code is 404
                 if($deletedItem){
                     http_response_code(200);
-                    echo json_encode(["status" => "success", "message" => "delete item test success"]);
+                    echo json_encode(["status" => "success", "message" => "delete item test success", "data" => $item]);
                 }else{
                     http_response_code(404);
                     echo json_encode(["status" => "error", "message" => "item not found"]);
@@ -512,10 +574,29 @@ class AuthController {
         // Check if the request method is DELETE
         if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
             // Retrieve and decode the input data
-            parse_str(file_get_contents("php://input"), $inputData);
 
+            header('Content-Type: application/json'); // set the content type
+
+            $data = json_decode(file_get_contents('php://input'), true);
+
+            $adminUserName = $data['admin'] ?? null;
+
+            if($adminUserName){
+                if(!($this->adminDAO->isAdmin($adminUserName))){
+                    http_response_code(401);
+                    echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
+                    return;
+                }
+            }
+            else{
+                http_response_code(400);
+                    echo json_encode(["status" => "fail", "message" => "userName must be provided to authenticate admin."]);
+                    return;
+            }
+
+            $userName = $data['userName'] ?? null;
             // Validate required field (userName)
-            if (!isset($inputData['userName'])) {
+            if (!$userName) {
                 http_response_code(400); // Bad Request
                 echo json_encode([
                     "status" => "error",
@@ -524,19 +605,20 @@ class AuthController {
                 return;
             }
 
-            // Extract the userName
-            $userName = $inputData['userName'];
-
             try {
                 // Call the DAO function to delete the customer record
+
+                $user = $this->userDAO->getUserByUserName($userName);
+
                 $result = $this->adminDAO->deleteCustomerRecords($userName);
 
                 // Respond based on the result of the deletion
-                if ($result) {
+                if ($result && $user) {
                     http_response_code(200); // OK
                     echo json_encode([
                         "status" => "success",
-                        "message" => "Customer deleted successfully"
+                        "message" => "Customer deleted successfully",
+                        "data" => $user->toJson()
                     ]);
                 } else {
                     http_response_code(500); // Internal Server Error
@@ -657,40 +739,50 @@ class AuthController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Get the raw POST data
             $data = json_decode(file_get_contents('php://input'), true);
-
+    
             // Check if all required fields are present in the request
             if (isset($data['items']) && isset($data['payment'])) {
                 $items = $data['items']; // Array of objects with itemId and quantity
                 $paymentData = $data['payment']; // Payment details
-
+    
                 // Extract payment details
                 $fullName = $paymentData['fullName'];
                 $userName = $paymentData['userName'];
                 $cardNum = $paymentData['card_num'];
                 $cvv = $paymentData['cvv'];
                 $expiry = $paymentData['expiry'];
-
+    
                 // Initialize an empty array to hold the transaction objects
                 $transactions = [];
                 $totalPrice = 0;
-
+    
                 try {
                     // Loop through the items and get item details
                     foreach ($items as $item) {
                         // Check if both itemId and quantity are present
-                        if (isset($item['itemId']) && isset($item['quantity'])) {
-                            $itemId = $item['itemId'];
+                        if (isset($item['itemid']) && isset($item['quantity'])) {
+                            $itemid = $item['itemid'];
                             $quantity = $item['quantity'];
-
+    
                             // Get item data using itemDAO
-                            $itemModel = $this->itemDAO->getItemById($itemId);
-
+                            $itemModel = $this->itemDAO->getItemById($itemid);
+    
                             // Check if the item exists
                             if ($itemModel) {
                                 // Calculate the price for the quantity ordered
                                 $itemPrice = $itemModel->getPrice();
                                 $totalPrice += $itemPrice * $quantity;
-
+    
+                                $updated_inventory = $itemModel->getQuantity() - $quantity;
+    
+                                if ($updated_inventory < 0) {
+                                    http_response_code(400); // Bad request
+                                    echo json_encode(["status" => "error", "message" => "Transaction cancelled as order quantity is greater than inventory stock."]);
+                                    return;
+                                }
+    
+                                $this->itemDAO->updateItemInventory($itemid, $updated_inventory);
+    
                                 // Create a new transaction model for each item
                                 $transaction = new Transaction(
                                     null, // trans_id will be assigned later
@@ -700,20 +792,24 @@ class AuthController {
                                     null
                                 );
 
+
+                                $transaction->setItemPrice($itemPrice);
                                 // Add the transaction to the transactions array
                                 $transactions[] = $transaction;
                             } else {
                                 // Handle the case where the item doesn't exist
-                                echo json_encode(["status" => "error", "message" => "Item ID $itemId not found"]);
+                                http_response_code(404); // Not Found
+                                echo json_encode(["status" => "error", "message" => "Item ID $itemid not found"]);
                                 return;
                             }
                         } else {
                             // Missing itemId or quantity in the request
+                            http_response_code(400); // Bad request
                             echo json_encode(["status" => "error", "message" => "Invalid item data (missing itemId or quantity)"]);
                             return;
                         }
                     }
-
+    
                     // Create a payment model
                     $payment = new Payment(
                         null, // trans_id will be generated on insert
@@ -723,36 +819,42 @@ class AuthController {
                         $totalPrice,
                         1, // Set processed status as 1 (successful)
                         null, // Date of payment
-                        $fullName
+                        null
                     );
-
-                    // Add transactions to the payment model
-                    foreach ($transactions as $transaction) {
-                        $payment->addTransaction($transaction);
-                    }
-
+    
+                    $payment->setTransactions($transactions);
+                    $payment->setFullName($fullName);
+    
                     // Call userDAO's addUserTransactions to insert payment and transactions into the database
-                    $result = $this->userDAO->addUserTransactions($payment);
-
-                    $updated_inventory = $itemModel.getQuantity() - $quantity;
-                    $itemDAO->updateItemInventory($updated_inventory);
-
+                    $result = $this->userDAO->addUserTransaction($payment);
+    
                     // Return success response
-                    echo json_encode(["status" => "success", "message" => "Transactions added successfully", "data" => $result]);
-
+                    if($result){
+                        http_response_code(200); // OK
+                        echo json_encode(["status" => "success", "message" => "Transactions added successfully"]);
+                    }
+                    else{
+                        http_response_code(500); 
+                        echo json_encode(["status" => "error", "message" => "Something went wrong, not sure what."]);
+                    }
+    
                 } catch (Exception $e) {
                     // Handle exceptions (log error, rethrow, etc.)
+                    http_response_code(500); // Internal Server Error
                     echo json_encode(["status" => "error", "message" => "Error processing transactions: " . $e->getMessage()]);
                 }
             } else {
                 // Missing required fields in the request
+                http_response_code(400); // Bad request
                 echo json_encode(["status" => "error", "message" => "Missing required fields"]);
             }
         } else {
             // Invalid HTTP method (only POST is allowed)
+            http_response_code(405); // Method Not Allowed
             echo json_encode(["status" => "error", "message" => "Invalid request method"]);
         }
     }
+    
 
 
 
@@ -798,16 +900,33 @@ class AuthController {
     public function adminGetCustomers() {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             try {
+
+                header('Content-Type: application/json');
+
+                $userName = $_GET['userName'] ?? null;
+    
+                if($userName){
+                    if(!($this->adminDAO->isAdmin($userName))){
+                        http_response_code(401);
+                        echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
+                        return;
+                    }
+                }
+                else{
+                    http_response_code(400);
+                        echo json_encode(["status" => "fail", "message" => "userName must be provided to authenticate admin."]);
+                        return;
+                }
                 // Fetch all users using the getAllUsers() function
-                $users = $adminDAO->getAllUsers();
+                $users = $this->adminDAO->getAllUsers();
 
                 if (!empty($users)) {
-                    // Return success response with users data
+                  
                     http_response_code(200); // HTTP Status 200: OK
                     echo json_encode([
                         "status" => "success",
                         "message" => "Customers retrieved successfully.",
-                        "data" => $users
+                        "users" => $users->toJson()
                     ]);
                 } else {
                     // If no users found, return a 404 response

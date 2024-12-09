@@ -56,13 +56,10 @@ interface UserDAO {
      * Retrieves a list of transactions for a specific user and groups them by transaction ID.
      * 
      * @param string $userName The username to fetch transactions for.
-     * @param string $cardNum The credit card number associated with the payment.
-     * @param string $cvv The CVV associated with the payment.
-     * @param string $expiry The expiration date of the credit card.
-     * @param string $fullName The full name associated with the payment.
+     * 
      * @return array An array of Payment objects, each containing related transactions.
      */
-    public function getUserTransactions($userName, $cardNum, $cvv, $expiry, $fullName);
+    public function getUserTransactions($userName);
 
      /**
      * Adds a payment and its associated transactions to the database.

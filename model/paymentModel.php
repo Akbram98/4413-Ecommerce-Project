@@ -23,7 +23,7 @@
 
 include_once 'transactionModel.php';
 
-class Payment {
+class Payment implements JsonSerializable {
     private $transId;         
     private $cardNum;
     private $cvv;
@@ -32,6 +32,7 @@ class Payment {
     private $processed;
     private $date;
     private $transactions;    // Array of Transactions
+    private $fullName = null;
 
     // Constructor
     public function __construct(
@@ -60,6 +61,14 @@ class Payment {
         return $this->transId;
     }
 
+    public function setFullName($fullName){
+        $this->fullName = $fullName;
+    }
+
+    public function getFullName(){
+        return $this->fullName;
+    }
+    
     public function setTransId($transId) {
         $this->transId = $transId;
     }
@@ -137,5 +146,22 @@ class Payment {
     public function addTransaction(Transaction $transaction) {
         $this->transactions[] = $transaction;
     }
+
+    // Implement jsonSerialize to define the JSON structure
+    public function jsonSerialize() {
+        return [
+            "transId" => $this->transId,
+            "cardNum" => $this->cardNum,
+            "cvv" => $this->cvv,
+            "expiry" => $this->expiry,
+            "totalPrice" => $this->totalPrice,
+            "processed" => $this->processed,
+            "date" => $this->date,
+            "transactions" => array_map(function($transaction) {
+                return $transaction->jsonSerialize(); // Assuming Transaction model is JsonSerializable
+            }, $this->transactions)
+        ];
+    }
+
 }
 ?>
