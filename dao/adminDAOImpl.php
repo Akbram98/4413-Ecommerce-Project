@@ -339,55 +339,61 @@ public function getSalesHistory() {
      * assigned-To: Hiraku
      */
     public function updateCustomerRecords(Profile $profile) {
-        $query = "UPDATE Profiles SET ";
-        $params = [];
-        $updates = [];
-    
-        // Add fields to update if not null
-        if (!is_null($profile->getStreet())) {
-            $updates[] = "street = :street";
-            $params[':street'] = $profile->getStreet();
-        }
-        if (!is_null($profile->getCity())) {
-            $updates[] = "city = :city";
-            $params[':city'] = $profile->getCity();
-        }
-        if (!is_null($profile->getProvince())) {
-            $updates[] = "province = :province";
-            $params[':province'] = $profile->getProvince();
-        }
-        if (!is_null($profile->getPostal())) {
-            $updates[] = "postal = :postal";
-            $params[':postal'] = $profile->getPostal();
-        }
-        if (!is_null($profile->getCardNum())) {
-            $updates[] = "cardNum = :cardNum";
-            $params[':cardNum'] = $profile->getCardNum();
-        }
-        if (!is_null($profile->getCvv())) {
-            $updates[] = "cvv = :cvv";
-            $params[':cvv'] = $profile->getCvv();
-        }
-        if (!is_null($profile->getExpiry())) {
-            $updates[] = "expiry = :expiry";
-            $params[':expiry'] = $profile->getExpiry();
-        }
-    
-        // If no fields to update, return false
-        if (empty($updates)) {
-            return false;
-        }
-    
-        // Join update clauses and complete query
-        $query .= implode(", ", $updates) . " WHERE userName = :userName";
-        $params[':userName'] = $profile->getUserName();
-    
-        // Execute query
         try {
-            $stmt = $this->pdo->prepare($query);
-            return $stmt->execute($params);
+            // Initialize the base query and parameters array
+            $updateQuery = "UPDATE Profile SET ";
+            $parameters = [];
+    
+            // Dynamically construct the query based on non-null fields
+            if (!is_null($profile->getStreet())) {
+                $updateQuery .= "street = :street, ";
+                $parameters[':street'] = $profile->getStreet();
+            }
+            if (!is_null($profile->getCity())) {
+                $updateQuery .= "city = :city, ";
+                $parameters[':city'] = $profile->getCity();
+            }
+            if (!is_null($profile->getProvince())) {
+                $updateQuery .= "province = :province, ";
+                $parameters[':province'] = $profile->getProvince();
+            }
+            if (!is_null($profile->getPostal())) {
+                $updateQuery .= "postal = :postal, ";
+                $parameters[':postal'] = $profile->getPostal();
+            }
+            if (!is_null($profile->getCardNum())) {
+                $updateQuery .= "card_num = :cardNum, ";
+                $parameters[':cardNum'] = $profile->getCardNum();
+            }
+            if (!is_null($profile->getCvv())) {
+                $updateQuery .= "cvv = :cvv, ";
+                $parameters[':cvv'] = $profile->getCvv();
+            }
+            if (!is_null($profile->getExpiry())) {
+                $updateQuery .= "expiry = :expiry, ";
+                $parameters[':expiry'] = $profile->getExpiry();
+            }
+    
+            // Remove the trailing comma and space
+            $updateQuery = rtrim($updateQuery, ', ');
+    
+            // Add the WHERE clause
+            $updateQuery .= " WHERE userName = :userName";
+            $parameters[':userName'] = $profile->getUserName();
+    
+            // Prepare and execute the query
+            $stmt = $this->pdo->prepare($updateQuery);
+    
+            // Bind parameters
+            foreach ($parameters as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+    
+            return $stmt->execute();
+    
         } catch (PDOException $e) {
-            // Handle error (log it, rethrow, etc.)
+            // Handle exceptions (log error, rethrow, etc.)
+            echo "Error updating profile: " . $e->getMessage();
             return false;
         }
     }
