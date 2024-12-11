@@ -221,10 +221,10 @@ class AuthController {
             $item = null;
 
             //getting fields from request body 
-            $userName = $_POST['userName'] ?? null;
+            $admin = $_POST['admin'] ?? null;
 
-            if($userName){
-                if(!($this->adminDAO->isAdmin($userName))){
+            if($admin){
+                if(!($this->adminDAO->isAdmin($admin))){
                     http_response_code(401);
                     echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
                     return;
@@ -318,10 +318,10 @@ class AuthController {
             $data = json_decode($input, true);
             header('Content-Type: application/json'); // set the content type
 
-            $userName = $data['userName'] ?? null;
+            $admin = $data['admin'] ?? null;
 
-            if($userName){
-                if(!($this->adminDAO->isAdmin($userName))){
+            if($admin){
+                if(!($this->adminDAO->isAdmin($admin))){
                     http_response_code(401);
                     echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
                     return;
@@ -509,10 +509,10 @@ class AuthController {
 
             $itemid = $data['item_id'] ?? null;
 
-            $userName = $data['userName'] ?? null;
+            $admin = $data['admin'] ?? null;
 
             if($userName){
-                if(!($this->adminDAO->isAdmin($userName))){
+                if(!($this->adminDAO->isAdmin($admin))){
                     http_response_code(401);
                     echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
                     return;
@@ -579,10 +579,10 @@ class AuthController {
 
             $data = json_decode(file_get_contents('php://input'), true);
 
-            $adminUserName = $data['admin'] ?? null;
+            $admin = $data['admin'] ?? null;
 
-            if($adminUserName){
-                if(!($this->adminDAO->isAdmin($adminUserName))){
+            if($admin){
+                if(!($this->adminDAO->isAdmin($admin))){
                     http_response_code(401);
                     echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
                     return;
@@ -682,12 +682,13 @@ class AuthController {
     public function getUserTransactions() {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             // Check if the username parameter is provided
-            if (isset($_GET['username']) && !empty($_GET['username'])) {
-                $username = $_GET['username'];
+            header('Content-Type: application/json');
+            if (isset($_GET['userName']) && !empty($_GET['userName'])) {
+                $username = $_GET['userName'];
 
                 try {
                     // Call the getUserTransactions() method
-                    $transactions = $this->getUserTransactions($username);
+                    $transactions = $this->userDAO->getUserTransactions($username);
 
                     if (!empty($transactions)) {
                         // Return success response with transactions data
@@ -868,9 +869,25 @@ class AuthController {
         if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
             //Call getSalesHistory from adminDAO
-            $sales = $this->adminDAO->getSalesHistory();
 
             header('Content-Type: application/json');
+
+            $admin = $_GET['admin'] ?? null;
+
+            if($admin){
+                if(!($this->adminDAO->isAdmin($admin))){
+                    http_response_code(401);
+                    echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
+                    return;
+                }
+            }
+            else{
+                http_response_code(400);
+                    echo json_encode(["status" => "fail", "message" => "userName must be provided to authenticate admin."]);
+                    return;
+            }
+
+            $sales = $this->adminDAO->getSalesHistory();
 
             //Check if $sales is null. If not return $sales and set the response code to 200.
             //If false response code is 404 
@@ -903,10 +920,10 @@ class AuthController {
 
                 header('Content-Type: application/json');
 
-                $userName = $_GET['userName'] ?? null;
+                $admin = $_GET['admin'] ?? null;
     
-                if($userName){
-                    if(!($this->adminDAO->isAdmin($userName))){
+                if($admin){
+                    if(!($this->adminDAO->isAdmin($admin))){
                         http_response_code(401);
                         echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
                         return;
@@ -1025,54 +1042,80 @@ class AuthController {
         if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
             // Get the raw PUT data
             $data = json_decode(file_get_contents('php://input'), true);
-
+            header('Content-Type: application/json');
+    
+            $admin = $data['admin'] ?? null;
+    
+            if ($admin) {
+                if (!($this->adminDAO->isAdmin($admin))) {
+                    http_response_code(401);  // Unauthorized
+                    echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
+                    return;
+                }
+            } else {
+                http_response_code(400);  // Bad Request (admin username missing)
+                echo json_encode(["status" => "fail", "message" => "userName must be provided to authenticate admin."]);
+                return;
+            }
+    
             // Check if at least one of the fields is provided
-            if (isset($data['username']) && !empty($data['username'])) {
-                $username = $data['username'];
-                $fullName = isset($data['fullName']) ? $data['fullName'] : null;
-                $address = isset($data['address']) ? $data['address'] : null;
+            if (isset($data['userName']) && !empty($data['userName'])) {
+                $username = $data['userName'];
+                $street = isset($data['street']) ? $data['street'] : null;
+                $city = isset($data['city']) ? $data['city'] : null;
+                $postal = isset($data['postal']) ? $data['postal'] : null;
+                $province = isset($data['province']) ? $data['province'] : null;
                 $cardNum = isset($data['card_num']) ? $data['card_num'] : null;
                 $cvv = isset($data['cvv']) ? $data['cvv'] : null;
                 $expiry = isset($data['expiry']) ? $data['expiry'] : null;
-                $phone = isset($data['phone']) ? $data['phone'] : null;
-
+    
                 // Check if at least one field is not null
-                if (is_null($fullName) && is_null($address) && is_null($cardNum) && is_null($cvv) && is_null($expiry) && is_null($phone)) {
+                if (is_null($street) && is_null($city) && is_null($postal) && 
+                    is_null($province) && is_null($cardNum) && is_null($cvv) && is_null($expiry)) {
                     // If all fields are null, return an error
+                    http_response_code(400);  // Bad Request (No fields to update)
                     echo json_encode(["status" => "error", "message" => "No fields provided for update"]);
                     return;
                 }
-
+    
                 // Populate Profile model with the updated details
                 $profile = new Profile(
                     $username,   // Username to identify the user
-                    $fullName,   // Full Name (can be null)
-                    $address,    // Address (can be null)
-                    $cardNum,    // Card Number (can be null)
-                    $cvv,        // CVV (can be null)
-                    $expiry,     // Expiry (can be null)
-                    $phone       // Phone (can be null)
+                    null,   
+                    null,
+                    null,
+                    $street,
+                    $city,
+                    $province,
+                    $postal,    
+                    $cardNum,    
+                    $cvv,        
+                    $expiry
                 );
-
+    
                 try {
                     // Call the adminDAO to update the customer records in the database
                     $result = $this->adminDAO->updateCustomerRecords($profile);
-
+    
                     // Return a success response
-                    echo json_encode(["status" => "success", "message" => "User profile updated successfully", "data" => $result]);
+                    http_response_code(200);  // OK (successful update)
+                    echo json_encode(["status" => "success", "message" => "User profile updated successfully"]);
                 } catch (Exception $e) {
                     // Handle any exceptions
+                    http_response_code(500);  // Internal Server Error
                     echo json_encode(["status" => "error", "message" => "Error updating profile: " . $e->getMessage()]);
                 }
             } else {
                 // If username is missing, return an error
+                http_response_code(400);  // Bad Request (username missing)
                 echo json_encode(["status" => "error", "message" => "Username is required"]);
             }
         } else {
             // If not a PUT request, return an error
+            http_response_code(405);  // Method Not Allowed (PUT is expected)
             echo json_encode(["status" => "error", "message" => "Invalid request method"]);
         }
-    }
+    }    
 
 
 }

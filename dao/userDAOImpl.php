@@ -407,8 +407,7 @@ public function updateProfileFields(Profile $profile) {
             // Create Payment objects and add corresponding transactions
             foreach ($groupedTransactions as $transId => $transactions) {
                 // Fetch payment details for the trans_id
-                $sql2 = "SELECT trans_id, card_num, cvv, expiry, total_price, fullName, date 
-                         FROM Payment WHERE trans_id = :trans_id AND processed = 1";
+                $sql2 = "SELECT * FROM Payment WHERE trans_id = :trans_id AND processed = 1";
                 $stmt = $this->pdo->prepare($sql2);
                 $stmt->bindParam(':trans_id', $transId);
                 $stmt->execute();

@@ -79,8 +79,7 @@ class Transaction implements JsonSerializable {
             "userName" => $this->userName,
             "quantity" => $this->quantity,
             "date" => $this->date,
-            "itemPrice" => $this->itemPrice,
-            "totalPrice" => $this->getTotalPrice()  // Include total price in JSON representation
+            "itemPrice" => $this->itemPrice,  // Include total price in JSON representation
         ];
     }
 }
