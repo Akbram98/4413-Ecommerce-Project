@@ -1,0 +1,19 @@
+/* Admin Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  th, td {
+    padding: 10px;
+    background-color: #1c1c1c;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+  }
+  
+  th {
+    color: #ff0000;
+  }
+  

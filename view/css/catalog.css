@@ -1,0 +1,106 @@
+/* Catalog Section */
+.catalog {
+  padding: 20px;
+  text-align: center;
+}
+
+.catalog h2 {
+  color: #ff0000;
+  margin-bottom: 20px;
+}
+
+.catalog-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.catalog-controls input,
+.catalog-controls select {
+  padding: 10px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  background-color: #1c1c1c;
+  color: #fff;
+}
+
+.catalog-controls input::placeholder {
+  color: #aaa;
+}
+
+.catalog-controls input:focus,
+.catalog-controls select:focus {
+  border: 2px solid #ff0000;
+  outline: none;
+}
+
+/* Product List - Horizontal Layout */
+#product-list {
+  display: flex; /* Horizontal layout */
+  flex-wrap: wrap; /* Wrap to the next line if items overflow */
+  justify-content: center; /* Center align items */
+  gap: 20px; /* Space between product cards */
+}
+
+/* Product Card Styling */
+.product-card {
+  background-color: #1c1c1c;
+  color: #fff;
+  border-radius: 5px;
+  padding: 10px;
+  width: 200px; /* Fixed width */
+  height: 350px; /* Fixed height */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Aligns details and buttons to the bottom */
+  align-items: center; /* Center align items horizontally */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(255, 0, 0, 0.7);
+}
+
+/* Product Image */
+.product-image {
+  width: 100%; /* Fit card width */
+  height: 150px; /* Fixed height for images */
+  object-fit: contain; /* Maintain proportions without distortion */
+  margin-bottom: 10px;
+}
+
+/* Product Details */
+.product-details {
+  flex: 1; /* Push details to bottom */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.product-card h3,
+.product-card p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+button.add-to-cart {
+  padding: 8px 12px;
+  background-color: #ff0000;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+button.add-to-cart:hover {
+  background-color: #cc0000;
+}

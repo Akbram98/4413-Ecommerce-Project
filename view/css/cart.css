@@ -1,0 +1,45 @@
+/* Cart Section Styling */
+#cart-section {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    color: #fff;
+  }
+  
+  #cart-empty-message {
+    text-align: center;
+    margin-top: 50px;
+  }
+  
+  #cart-empty-message h2 {
+    color: #ff0000;
+  }
+  
+  #cart-items table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  #cart-items table th,
+  #cart-items table td {
+    border: 1px solid #fff;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  #cart-items table th {
+    background-color: #1c1c1c;
+    color: #ff0000;
+  }
+  
+  #cart-items table td {
+    background-color: #121212;
+  }
+  
+  #cart-total {
+    margin-top: 10px;
+    font-size: 1.2rem;
+    color: #ff0000;
+  }
+  
