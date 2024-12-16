@@ -3,10 +3,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     const inventoryTable = document.getElementById('inventory');
   
-    // Simulated inventory data
+    // inventory data
     const inventory = [
       { id: 1, name: "Laptop", stock: 10 },
-      { id: 2, name: "T-Shirt", stock: 50 }
+      { id: 2, name: "T-Shirt", stock: 50 },
+      { id: 3, name: "iPhone 14 Pro", stock: 5 }
     ];
   
     // Render inventory
