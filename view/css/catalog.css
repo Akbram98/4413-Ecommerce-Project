@@ -83,11 +83,7 @@
   gap: 5px;
 }
 
-.product-card h3,
-.product-card p {
-  margin: 0;
-  font-size: 1rem;
-}
+
 
 button.add-to-cart {
   padding: 8px 12px;
