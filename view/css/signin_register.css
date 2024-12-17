@@ -1,0 +1,68 @@
+/* Form Section Styling */
+.form-section {
+    background-color: #1c1c1c;
+    color: #fff;
+    border-radius: 5px;
+    padding: 20px;
+    max-width: 400px;
+    margin: 50px auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    text-align: center;
+  }
+  
+  .form-section h2 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    color: #ff0000;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  form label {
+    text-align: left;
+    font-size: 0.9rem;
+  }
+  
+  form input {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #333;
+    color: #fff;
+    outline: none;
+  }
+  
+  form input:focus {
+    border: 2px solid #ff0000;
+  }
+  
+  form button {
+    padding: 10px;
+    background-color: #ff0000;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  form button:hover {
+    background-color: #cc0000;
+  }
+  
+  p a {
+    color: #ff0000;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  p a:hover {
+    text-decoration: underline;
+  }
+
+
+  

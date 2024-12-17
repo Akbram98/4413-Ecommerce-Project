@@ -1,0 +1,32 @@
+  /* User Auth Buttons Styling */
+  .user-auth {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .user-auth .button {
+    padding: 8px 12px;
+    background-color: #ff0000;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+  }
+  
+  .user-auth .button:hover {
+    background-color: #cc0000;
+  }
+  
+  .user-auth .sign-in {
+    background-color: #444;
+  }
+  
+  .user-auth .sign-in:hover {
+    background-color: #333;
+  }
+    
