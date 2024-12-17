@@ -15,7 +15,9 @@
       <a href="catalog.html">Catalog</a>
       <a href="cart.html">Shopping Cart</a>
       <a href="checkout.html">Checkout</a>
-      <a href="admin.html">Admin</a>
+      <div id="admin-link" style="display: none;">
+        <a href="admin.html">Admin</a>
+      </div>
     </nav>
     <div class="user-auth">
       <a href="signin.html" class="button sign-in">Sign In</a>
@@ -29,6 +31,15 @@
       <p>Explore our store by browsing <a href="catalog.html">the catalog</a></p>
     </section>
   </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const isAdmin = localStorage.getItem('isAdmin');
+      if (isAdmin === 'true') {
+        document.getElementById('admin-link').style.display = "inline-block";
+      }
+    });
+  </script>
 
   <footer>
     <p>&copy; 2024 Online Store. All rights reserved.</p>

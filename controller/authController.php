@@ -104,6 +104,8 @@ class AuthController {
             $userName = $data['userName'] ?? null;
             $password = $data['password'] ?? null;
 
+            echo "test";
+
             if ($userName && $password) {
                 if($this->adminDAO->isAdmin($userName)){
                     if($this->adminDAO->updateLastLogon($userName)){

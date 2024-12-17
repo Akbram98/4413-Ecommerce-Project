@@ -14,8 +14,6 @@
     <h1>Sign In</h1>
     <nav>
       <a href="index.html">Home</a>
-      <a href="catalog.html">Catalog</a>
-      <a href="cart.html">Shopping Cart</a>
     </nav>
   </header>
 
@@ -23,14 +21,15 @@
     <section class="form-section">
       <h2>Welcome Back!</h2>
       <form id="signin-form">
-        <label for="email">Email:</label>
-        <input type="email" id="email" placeholder="Enter your email" required>
-        
+        <label for="username">Username:</label>
+        <input type="text" id="username" placeholder="Enter your username" required>
+
         <label for="password">Password:</label>
         <input type="password" id="password" placeholder="Enter your password" required>
-        
+
         <button type="submit" class="button">Sign In</button>
       </form>
+      <p id="error-message" style="color: red; display: none;">Invalid credentials. Please try again.</p>
       <p>Don't have an account? <a href="register.html">Register here</a>.</p>
     </section>
   </main>
@@ -38,5 +37,34 @@
   <footer>
     <p>&copy; 2024 Online Store. All rights reserved.</p>
   </footer>
+
+  <script>
+    document.getElementById('signin-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      fetch('/signinUser', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userName: username, password: password })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          if (data.message === 'admin') {
+            localStorage.setItem('isAdmin', 'true'); // Store admin flag
+          } else {
+            localStorage.setItem('isAdmin', 'false'); // Regular user
+          }
+          window.location.href = 'index.html';
+        } else {
+          document.getElementById('error-message').style.display = 'block';
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    });
+  </script>
 </body>
 </html>
