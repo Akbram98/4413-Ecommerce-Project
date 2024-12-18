@@ -17,7 +17,7 @@
 
 class Database {
     private $host = 'localhost';    // Database host (usually 'localhost')
-    private $db_name = 'ecommerce';  // Database name
+    private $db_name = 'eecs4413';  // Database name
     private $username = 'root';     // Database username
     private $password = '';         // Database password
     private $conn = null;           // Database connection object
