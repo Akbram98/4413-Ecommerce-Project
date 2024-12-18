@@ -80,10 +80,12 @@ class AuthController {
             if (method_exists($this, $methodName)) {
                 call_user_func([$this, $methodName]);
             } else {
-                $this->sendResponse(500, "Method '$methodName' not implemented!");
+                http_response_code(500);
+                echo json_encode(["status" => "error", "message" => "Method '$methodName' not implemented!"]);
             }
         } else {
-            $this->sendResponse(404, "Route not found!");
+            http_response_code(404);
+            echo json_encode(["status" => "error", "message" => "Route not found!"]);
         }
     }
 
@@ -104,16 +106,16 @@ class AuthController {
             $userName = $data['userName'] ?? null;
             $password = $data['password'] ?? null;
 
-            echo "test";
-
             if ($userName && $password) {
                 if($this->adminDAO->isAdmin($userName)){
                     if($this->adminDAO->updateLastLogon($userName)){
                         http_response_code(200); // set the http response code
                         echo json_encode(["status" => "success", "message" => "admin"]);
                     }
-                    else
+                    else{
+                        http_response_code(401);
                         echo json_encode(["status" => "error", "message" => "admin login but last logon failed to update."]);
+                    }
                     return;
                 }
 
@@ -512,8 +514,8 @@ class AuthController {
             $itemid = $data['item_id'] ?? null;
 
             $admin = $data['admin'] ?? null;
-
-            if($userName){
+           
+            if($admin){
                 if(!($this->adminDAO->isAdmin($admin))){
                     http_response_code(401);
                     echo json_encode(["status" => "fail", "message" => "request failed because user does not have admin privileges"]);
