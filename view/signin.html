@@ -45,7 +45,7 @@
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
 
-      fetch('/signinUser', {
+      fetch('http://localhost/eecs4413/controller/authController/signinUser', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userName: username, password: password })
@@ -53,12 +53,15 @@
       .then(response => response.json())
       .then(data => {
         if (data.status === 'success') {
+          sessionStorage.setItem('username', username); // Store username in session storage
+
           if (data.message === 'admin') {
-            localStorage.setItem('isAdmin', 'true'); // Store admin flag
+            sessionStorage.setItem('isAdmin', 'true'); // Store admin status in session storage
+            window.location.href = 'admin.html';
           } else {
-            localStorage.setItem('isAdmin', 'false'); // Regular user
+            sessionStorage.setItem('isAdmin', 'false'); // Store admin status in session storage
+            window.location.href = 'index.html';
           }
-          window.location.href = 'index.html';
         } else {
           document.getElementById('error-message').style.display = 'block';
         }

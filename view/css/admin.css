@@ -16,4 +16,97 @@ table {
   th {
     color: #ff0000;
   }
+
+  
+  #add-item {
+    background-color: #1c1c1c;
+    color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+  }
+
+  #add-item h3 {
+    color: #ff0000;
+    text-align: center;
+  }
+
+
+  input[type="text"],
+  input[type="number"],
+  textarea,
+  input[type="file"] {
+    width: 100%;
+    padding: 8px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #333;
+    color: #fff;
+  }
+
+  input[type="text"]:focus,
+  input[type="number"]:focus,
+  textarea:focus,
+  input[type="file"]:focus {
+    border: 2px solid #ff0000;
+    outline: none;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  button {
+    padding: 10px 20px;
+    background-color: #ff0000;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  button:hover {
+    background-color: #cc0000;
+  }
+
+  /* Centering the form on page */
+  #add-item form {
+    display: block;
+    margin: 0 auto;
+    max-width: 600px;
+  }
+
+  /* Submit Button */
+  td[colspan="2"] {
+    text-align: center;
+  }
+
+  .stock-controls {
+    display: flex; /* Align the elements horizontally */
+    gap: 10px; /* Add some space between the input and buttons */
+    align-items: center; /* Center-align the items vertically */
+  }
+  
+  .stock-controls input {
+    width: 60px; /* Set width for the input field */
+    padding: 5px;
+  }
+  
+  .stock-controls button {
+    padding: 5px 10px;
+    background-color: #ff0000; /* Button color */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .stock-controls button:hover {
+    background-color: #cc0000;
+  }
+  
   

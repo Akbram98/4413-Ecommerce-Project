@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const formData = new FormData(registerForm);
   
       console.log('Sending data to server:', Object.fromEntries(formData.entries()));
-      fetch('controller/authController.php', {
+      fetch('http://localhost/eecs4413/controller/authController/registerUser', {
         method: 'POST',
         body: formData,
       })
@@ -36,4 +36,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
   });
-  
