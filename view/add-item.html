@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/body.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/buttons.css">
+  <link rel="stylesheet" href="css/add-item.css">
+  <title>Admin page</title>
+</head>
+<body>
+  <header>
+    <h1>Admin Panel</h1>
+    <nav id="navigation">
+      <a href="admin.html">Inventory</a>
+      <a href="add-item.html">Add New Product</a>
+      <a href="client.html">Clients</a>
+      <a href="sales.html">Sales</a>
+    </nav>
+  </header>
+  <main>
+    <h2>Add new Product</h2>
+    <form id="add-item-form" action="#" method="POST" enctype="multipart/form-data">
+      <table>
+        <tr>
+          <th>Item Name:</th>
+          <td><input type="text" id="item-name" name="itemName" required></td>
+        </tr>
+        <tr>
+          <th>Description:</th>
+          <td><textarea id="item-description" name="itemDescription" rows="4" required></textarea></td>
+        </tr>
+        <tr>
+          <th>Price:</th>
+          <td><input type="number" id="item-price" name="itemPrice" step="0.01" required></td>
+        </tr>
+        <tr>
+          <th>Quantity:</th>
+          <td><input type="number" id="item-quantity" name="itemQuantity" min="0" required></td>
+        </tr>
+        <tr>
+          <th>Image:</th>
+          <td><input type="file" id="item-image" name="itemImage" accept="image/*" required></td>
+        </tr>
+        <tr>
+          <th>Brand:</th>
+          <td><input type="text" id="item-brand" name="itemBrand" required></td>
+        </tr>
+      </table>
+      <div class="actions">
+        <button type="submit">Add Item</button>
+      </div>
+    </form>
+  </main>
+  <script src="js/add-item.js"></script>
+</body>
+</html>

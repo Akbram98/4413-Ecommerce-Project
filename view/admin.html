@@ -12,59 +12,26 @@
 <body>
   <header>
     <h1>Admin Panel</h1>
-    <nav>
-      <a href="index.html">Home</a>
+    <nav id="navigation">
+      <a href="admin.html">Inventory</a>
+      <a href="add-item.html">Add New Product</a>
+      <a href="client.html">Clients</a>
+      <a href="sales.html">Sales</a>
     </nav>
   </header>
 
   <main>
     <div id="admin">
-      <h2>Manage Inventory</h2>
-      
-      <!-- Add Item Section -->
-      <section id="add-item">
-        <h3>Add New Item</h3>
-        <form id="add-item-form">
-          <table>
-            <tr>
-              <th>Item Name:</th>
-              <td><input type="text" id="item-name" name="item-name" required></td>
-            </tr>
-            <tr>
-              <th>Description:</th>
-              <td><textarea id="description" name="description" required></textarea></td>
-            </tr>
-            <tr>
-              <th>Price:</th>
-              <td><input type="number" id="price" name="price" step="0.01" required></td>
-            </tr>
-            <tr>
-              <th>Quantity:</th>
-              <td><input type="number" id="quantity" name="quantity" required></td>
-            </tr>
-            <tr>
-              <th>Image:</th>
-              <td><input type="file" id="image" name="image" accept="image/*" required></td>
-            </tr>
-            <tr>
-              <th>Category:</th>
-              <td><input type="text" id="category" name="category" required></td>
-            </tr>
-            <tr>
-              <td colspan="2" style="text-align: center;">
-                <button type="submit">Add Item</button>
-              </td>
-            </tr>
-          </table>
-        </form>
-      </section>
-
-      <h2>Inventory</h2>
+      <h2>Inventory Management</h2>
       <table>
         <thead>
           <tr>
-            <th>Product</th>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Description</th>
             <th>Stock</th>
+            <th>Price</th>
+            <th class="date-column">Date</th>
             <th>Actions</th>
           </tr>
         </thead>

@@ -1,0 +1,86 @@
+
+/* Total Revenue section */
+.revenue {
+    font-size: 1.5em;
+    margin-top: 20px;
+    text-align: center;
+    color: #ff0000; /* Dark text */
+}
+
+/* Sorting options section */
+.sorting {
+    margin-top: 20px;
+    text-align: center;
+}
+
+/* Sales Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: #1c1c1c; /* Dark background */
+  color: #fff; /* White text */
+}
+
+th, td {
+    border: 1px solid #333; /* Darker border for better contrast */
+    padding: 10px;
+    text-align: left;
+    vertical-align: middle;
+  }
+  
+  /* Header Styling */
+  th {
+    background-color: #2c3e50; /* Slightly lighter dark for headers */
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+/* Table Row Hover */
+tr:hover {
+    background-color: #e0e0e0; /* Light gray for hover */
+}
+
+/* Chart Container */
+.chart-container {
+    width: 60%;
+    margin-top: 40px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Base styling for navigation links */
+#navigation a {
+    color: white; /* Match previous color scheme */
+    text-decoration: none;
+    margin: 0 15px;
+    font-weight: bold;
+    padding: 5px 10px;
+    transition: all 0.3s ease;
+}
+
+/* Hover effect for links */
+#navigation a:hover {
+    color: #ff0000; /* Red for hover */
+}
+
+/* Active link styling */
+#navigation a.active {
+    color: #ff0000; /* Red text for active link */
+    border-bottom: 2px solid #ff0000; /* Red border for underline hue */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    table {
+        font-size: 12px;
+    }
+    th, td {
+        padding: 8px;
+    }
+    .actions button {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+}

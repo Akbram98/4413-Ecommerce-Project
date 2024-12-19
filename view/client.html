@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/body.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/buttons.css">
+  <link rel="stylesheet" href="css/client.css">
+  <title>Clients Management</title>
+</head>
+<body>
+  <header>
+    <h1>Admin Panel</h1>
+    <nav id="navigation">
+      <a href="admin.html">Inventory</a>
+      <a href="add-item.html">Add New Product</a>
+      <a href="client.html" class="active">Clients</a>
+      <a href="sales.html">Sales</a>
+    </nav>
+  </header>
+
+  <main>
+    <div id="clients-table">
+      <h2>Client Management</h2>
+      <table id="clients">
+        <thead>
+          <tr>
+            <th>User Name</th>
+            <th>Full Name</th>
+            <th>Address</th>
+            <th>Card Information</th>
+            <th>Last Logon</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="clients-data"></tbody>
+      </table>
+    </div>
+
+    <!-- Update Form (Hidden by default) -->
+    <div class="update-form" id="update-form" style="display:none;">
+      <h3>Update User Information</h3>
+      <div class="form-group">
+        <label for="update-street">Street:</label>
+        <input type="text" id="update-street">
+      </div>
+      <div class="form-group">
+        <label for="update-city">City:</label>
+        <input type="text" id="update-city">
+      </div>
+      <div class="form-group">
+        <label for="update-province">Province:</label>
+        <input type="text" id="update-province">
+      </div>
+      <div class="form-group">
+        <label for="update-postal">Postal Code:</label>
+        <input type="text" id="update-postal">
+      </div>
+      <div class="form-group">
+        <label for="update-card-num">Card Number:</label>
+        <input type="text" id="update-card-num">
+      </div>
+      <div class="form-group">
+        <label for="update-cvv">CVV:</label>
+        <input type="text" id="update-cvv">
+      </div>
+      <div class="form-group">
+        <label for="update-expiry">Expiry Date:</label>
+        <input type="text" id="update-expiry">
+      </div>
+      <button id="save-update">Save Changes</button>
+    </div>
+  </main>
+  <script src="js/client.js"></script>
+</body>
+</html>

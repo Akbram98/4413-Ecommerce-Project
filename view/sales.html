@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales History</title>
+  <link rel="stylesheet" href="css/body.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/buttons.css">
+  <link rel="stylesheet" href="css/sales.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Admin Panel</h1>
+    <nav id="navigation">
+        <a href="admin.html">Inventory</a>
+        <a href="add-item.html">Add New Product</a>
+        <a href="client.html">Clients</a>
+        <a href="sales.html">Sales</a>
+      </nav>
+  </header>
+  <h2>Sales History</h2>
+  <!-- Total Revenue -->
+  <div id="total-revenue" class="revenue">
+    Total Revenue: <span id="total-revenue-amount">$0.00</span>
+  </div>
+
+  <!-- Sorting Options -->
+  <div id="sorting-options" class="sorting">
+    <label for="sort-by">Sort by:</label>
+    <select id="sort-by">
+      <option value="date">Date</option>
+      <option value="userName">Username</option>
+      <option value="category">Category</option>
+    </select>
+  </div>
+  <!-- Sales Data Table -->
+   <!-- Chart -->
+  <!-- Container to display both charts side by side -->
+<div style="display: flex; justify-content: space-between;">
+
+    <!-- First chart for number of products sold -->
+    <div style="width: 48%;">
+      <canvas id="sales-chart" width="400" height="200"></canvas>
+    </div>
+  
+    <!-- Second chart for total price of items sold -->
+    <div style="width: 48%;">
+      <canvas id="total-price-chart" width="400" height="200"></canvas>
+    </div>
+  
+  </div>
+
+  <table id="sales-table" class="sales-table" border="1">
+    <thead>
+      <tr>
+        <th>Transaction ID</th>
+        <th>Username</th>
+        <th>Item ID</th>
+        <th>Item Price</th>
+        <th>Quantity</th>
+        <th>Total Price</th>
+        <th>Transaction Date</th>
+      </tr>
+    </thead>
+    <tbody id="sales-data"></tbody>
+  </table>
+
+  <script src="js/sales.js"></script>
+</body>
+</html>
