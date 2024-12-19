@@ -13,7 +13,7 @@
   <header>
     <h1>Admin Panel</h1>
     <nav id="navigation">
-      <a href="admin.html">Inventory</a>
+      <a href="admin.html" class="active">Inventory</a>
       <a href="add-item.html">Add New Product</a>
       <a href="client.html">Clients</a>
       <a href="sales.html">Sales</a>
@@ -37,7 +37,32 @@
         </thead>
         <tbody id="inventory"></tbody>
       </table>
-    </div>
+
+      <div class="update-form" id="update-form" style="display:none;">
+        <div class="form-group">
+          <label for="update-name">Name:</label>
+          <input type="text" id="update-name">
+        </div>
+        <div class="form-group">
+          <label for="update-description">Description:</label>
+          <textarea id="update-description" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="update-stock">Stock:</label>
+          <input type="number" id="update-stock" min="0">
+        </div>
+        <div class="form-group">
+          <label for="update-price">Price:</label>
+          <input type="number" id="update-price" step="0.01" min="0">
+        </div>
+        <br>
+        <div class="actions">
+         <button id="save-update">Save Changes</button>
+         <button id="cancel-update" type="button">Cancel</button>
+      </div>
+      </div>
+      
+      
   </main>
 
   <script src="js/admin.js"></script>

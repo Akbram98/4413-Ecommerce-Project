@@ -1,25 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Access control for Admin page
-  const isAdmin = sessionStorage.getItem('isAdmin');
-  if (isAdmin !== 'true') {
-    alert('Access Denied! Admins only.');
-    window.location.href = 'index.html';
-    return; // Prevent further execution
-  }
-
-  const navLinks = document.querySelectorAll('#navigation a');
-  const currentPath = window.location.pathname.split('/').pop();
-
-  navLinks.forEach(link => {
-    const hrefPath = link.getAttribute('href').split('/').pop();
-    if (hrefPath === currentPath) {
-      link.classList.add('active');
-    } else {
-      link.classList.remove('active');
-    }
-  });
-
   const inventoryTable = document.getElementById('inventory');
+  const updateForm = document.getElementById('update-form');
+  const saveUpdateButton = document.getElementById('save-update');
+  const cancelUpdateButton = document.getElementById('cancel-update');
+
+  let currentItemIndex = null;
 
   // Fetch inventory data from REST API
   function fetchInventory() {
@@ -41,27 +26,18 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderInventory(items) {
     inventoryTable.innerHTML = items
       .map((item, index) => `
-        <tr>
+        <tr id="inventory-row-${index}">
           <td>
             <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px;">
-            <input type="file" id="image-input-${index}" accept="image/*">
           </td>
-          <td>
-            <input type="text" id="name-input-${index}" value="${item.name}">
-          </td>
-          <td>
-            <textarea id="description-input-${index}" rows="2">${item.description}</textarea>
-          </td>
-          <td>
-            <input type="number" id="stock-input-${index}" value="${item.quantity}" min="0">
-          </td>
-          <td>
-            <input type="number" id="price-input-${index}" value="${item.price}" step="0.01" min="0">
-          </td>
+          <td>${item.name}</td>
+          <td>${item.description}</td>
+          <td>${item.quantity}</td>
+          <td>${item.price}</td>
           <td>${item.date}</td>
           <td>
             <div class="actions">
-              <button onclick="updateStock(${index})">Update</button>
+              <button onclick="showUpdateForm(${index}, '${item.name}', '${item.description}', ${item.quantity}, ${item.price}, '${item.image}')">Update</button>
               <button onclick="deleteItem(${index})">Delete</button>
             </div>
           </td>
@@ -70,35 +46,63 @@ document.addEventListener('DOMContentLoaded', () => {
       .join('');
   }
 
-  // Update stock and other fields
-  function updateStock(index) {
-    const nameInput = document.getElementById(`name-input-${index}`);
-    const descriptionInput = document.getElementById(`description-input-${index}`);
-    const stockInput = document.getElementById(`stock-input-${index}`);
-    const priceInput = document.getElementById(`price-input-${index}`);
-    const imageInput = document.getElementById(`image-input-${index}`);
+  // Show update form for the selected item
+  window.showUpdateForm = (index, name, description, quantity, price, image) => {
+    currentItemIndex = index;
 
-    const item = {
-      name: nameInput.value,
-      description: descriptionInput.value,
-      quantity: parseInt(stockInput.value, 10),
-      price: parseFloat(priceInput.value)
+    // Populate the form with the selected item's data
+    document.getElementById('update-name').value = name;
+    document.getElementById('update-description').value = description;
+    document.getElementById('update-stock').value = quantity;
+    document.getElementById('update-price').value = price;
+
+    // Hide all rows except the one being updated
+    Array.from(inventoryTable.children).forEach((row, i) => {
+      row.style.display = i === index ? 'table-row' : 'none';
+    });
+
+    // Show the update form
+    updateForm.style.display = 'block';
+  };
+
+  // Save updated item
+  saveUpdateButton.addEventListener('click', () => {
+    if (currentItemIndex === null) return;
+
+    const updatedItem = {
+      name: document.getElementById('update-name').value,
+      description: document.getElementById('update-description').value,
+      quantity: parseInt(document.getElementById('update-stock').value, 10),
+      price: parseFloat(document.getElementById('update-price').value),
     };
 
-    if (imageInput.files && imageInput.files[0]) {
-      item.image = URL.createObjectURL(imageInput.files[0]);
-    }
+    console.log('Updated item:', updatedItem);
 
-    console.log('Updated item:', item);
-    // Here you could send a PUT/POST request to update the inventory in the backend
-  }
+    // Send updated data to the backend (PUT/POST request can be added here)
 
-  function deleteItem(index) {
+    // Reset the table and hide the form
+    updateForm.style.display = 'none';
+    fetchInventory();
+  });
+
+  // Cancel the update and restore the table rows
+  cancelUpdateButton.addEventListener('click', () => {
+    // Hide the update form
+    updateForm.style.display = 'none';
+
+    // Show all rows again
+    Array.from(inventoryTable.children).forEach((row) => {
+      row.style.display = 'table-row';
+    });
+  });
+
+  // Delete an item
+  window.deleteItem = (index) => {
     if (confirm('Are you sure you want to delete this item?')) {
-      // Ideally, send a DELETE request to the backend to remove the item
       console.log(`Item at index ${index} deleted`);
+      // Ideally, send a DELETE request to the backend to remove the item
     }
-  }
+  };
 
   // Initial fetch
   fetchInventory();
