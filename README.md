@@ -34,7 +34,7 @@ To access the admin panel, use the following credentials:
 **Username**: hiraku  
 **Password**: hiraku123  
 
-## Database Setup
+## SQL Script
 
 To set up the database tables, execute the following SQL scripts:
 
