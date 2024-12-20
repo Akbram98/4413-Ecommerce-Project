@@ -1,14 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Product list
-  const products = [
-    { id: 1, name: "Laptop", category: "electronics", price: 999.99, image: "assets/laptop.png", description: "A high-performance laptop suitable for work, gaming, and everyday use.", quantity: Math.floor(Math.random() * 50) + 1 },
-    { id: 2, name: "iPhone 14 Pro", category: "electronics", price: 749.99, image: "assets/iPhone-14.png", description: "The latest iPhone with cutting-edge technology and stunning design.", quantity: Math.floor(Math.random() * 50) + 1 },
-    { id: 3, name: "Sony WH 1000xm5", category: "electronics", price: 149.99, image: "assets/Sony WH 1000xm5.png", description: "Noise-canceling headphones delivering immersive audio and comfort.", quantity: Math.floor(Math.random() * 50) + 1 },
-    { id: 4, name: "Black Shirt", category: "fashion", price: 24.99, image: "assets/Black Shirt.jpg", description: "A classic black shirt that pairs well with any outfit.", quantity: Math.floor(Math.random() * 50) + 1 },
-    { id: 5, name: "Washing Machine", category: "home", price: 499.99, image: "assets/Washing_Machine.png", description: "A reliable washing machine for all your laundry needs.", quantity: Math.floor(Math.random() * 50) + 1 }
-  ];
-  
-
   // Cart to track item quantities
   const cart = {};
 
@@ -25,20 +15,18 @@ document.addEventListener('DOMContentLoaded', () => {
       productCard.innerHTML = `
         <img src="${product.image}" alt="${product.name}" class="product-image">
         <h3>${product.name}</h3>
-        <p>Price: $${product.price.toFixed(2)}</p>
+        <p>Price: $${parseFloat(product.price).toFixed(2)}</p>
         <p class="product-quantity">in stock: ${product.quantity}</p>
-        <div id="cart-controls-${product.id}">
-          <button class="add-to-cart" data-id="${product.id}">Add to Cart</button>
+        <div id="cart-controls-${product.itemId}">
+          <button class="add-to-cart" data-id="${product.itemId}">Add to Cart</button>
         </div>
       `;
-
-
       productList.appendChild(productCard);
     });
   };
 
   // Filter products based on search and category
-  const filterProducts = () => {
+  const filterProducts = (products) => {
     const searchQuery = searchInput.value.toLowerCase();
     const selectedCategory = filterSelect.value;
 
@@ -84,23 +72,49 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartControls(productId);
   };
 
-  // Event listeners
-  searchInput.addEventListener('input', filterProducts);
-  filterSelect.addEventListener('change', filterProducts);
+  // Fetch product data from the API
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('http://localhost/eecs4413/controller/authController/getItems');
+      const data = await response.json();
 
-  productList.addEventListener('click', (event) => {
-    const target = event.target;
-    const productId = parseInt(target.getAttribute('data-id'), 10);
+      if (data.status === 'success') {
+        const products = data.items.map(item => ({
+          itemId: item.itemId,
+          name: item.name,
+          price: item.price,
+          description: item.description,
+          image: item.image,
+          quantity: parseInt(item.quantity, 10), // Parse quantity as a number
+        }));
 
-    if (target.classList.contains('add-to-cart')) {
-      handleCart(productId, 'add');
-    } else if (target.classList.contains('increase-quantity')) {
-      handleCart(productId, 'add');
-    } else if (target.classList.contains('decrease-quantity')) {
-      handleCart(productId, 'remove');
+        // Initial render
+        renderProducts(products);
+
+        // Filter products after fetching
+        searchInput.addEventListener('input', () => filterProducts(products));
+        filterSelect.addEventListener('change', () => filterProducts(products));
+        
+        productList.addEventListener('click', (event) => {
+          const target = event.target;
+          const productId = parseInt(target.getAttribute('data-id'), 10);
+
+          if (target.classList.contains('add-to-cart')) {
+            handleCart(productId, 'add');
+          } else if (target.classList.contains('increase-quantity')) {
+            handleCart(productId, 'add');
+          } else if (target.classList.contains('decrease-quantity')) {
+            handleCart(productId, 'remove');
+          }
+        });
+      } else {
+        console.error('Error fetching products: ', data.message);
+      }
+    } catch (error) {
+      console.error('Request failed: ', error);
     }
-  });
+  };
 
-  // Initial render
-  renderProducts(products);
+  // Call the function to fetch products
+  fetchProducts();
 });

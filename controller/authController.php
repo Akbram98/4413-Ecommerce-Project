@@ -241,14 +241,22 @@ class AuthController {
             }
 
 
-            $itemid = $_POST['item_id'] ?? null;
             $name = $_POST['name'] ?? null;
             $price = $_POST['price'] ?? null;
             $description = $_POST['description'] ?? null;
             $brand = $_POST['brand'] ?? null;
-            $date = $_POST['date'] ?? null;
             $quantity = $_POST['quantity'] ?? null;
             $image = $_POST['image'] ?? null;
+
+            // Prepare the data array
+        $data = [
+            'name' => $name,
+            'price' => $price,
+            'description' => $description,
+            'brand' => $brand,
+            'quantity' => $quantity,
+            'image' => $image
+        ];
             
             
             //checking if any fields are null
@@ -257,12 +265,12 @@ class AuthController {
                 //item object creation
 
                 $item = new Item(
-                    $itemid, 
+                    null, 
                     $name,
                     $price,
                     $description,
                     $brand,
-                    $date,
+                    null,
                     $quantity,
                     $image);
                  
@@ -280,7 +288,7 @@ class AuthController {
                   //if any of the fields are null then http response code 403 
             }else{
                 http_response_code(400);
-                echo json_encode(["status" => "error", "message" => "all fields are required (itemid, name, price, description, brand, date, quantity, image)"]);
+                echo json_encode(["status" => "error", "message" => "all fields are required (name, price, description, brand, quantity, image)", "mydata" => $data]);
             }
 
             

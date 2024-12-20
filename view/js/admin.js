@@ -4,6 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveUpdateButton = document.getElementById('save-update');
   const cancelUpdateButton = document.getElementById('cancel-update');
 
+  const isAdmin = sessionStorage.getItem('isAdmin');
+    if (isAdmin !== 'true') {
+        alert('Access Denied! Admins only.');
+        window.location.href = 'index.html';
+        return;
+    }
+
   let currentItemIndex = null;
 
   // Fetch inventory data from REST API

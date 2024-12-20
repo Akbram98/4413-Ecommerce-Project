@@ -21,7 +21,7 @@
   </header>
   <main>
     <h2>Add new Product</h2>
-    <form id="add-item-form" action="#" method="POST" enctype="multipart/form-data">
+    <form id="add-item-form" action="#" method="POST">
       <table>
         <tr>
           <th>Item Name:</th>
@@ -40,8 +40,8 @@
           <td><input type="number" id="item-quantity" name="itemQuantity" min="0" required></td>
         </tr>
         <tr>
-          <th>Image:</th>
-          <td><input type="file" id="item-image" name="itemImage" accept="image/*" required></td>
+          <th>Image URL:</th>
+          <td><input type="text" id="item-image" name="itemImage" required></td>
         </tr>
         <tr>
           <th>Brand:</th>

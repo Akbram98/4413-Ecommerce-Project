@@ -34,7 +34,20 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const isAdmin = localStorage.getItem('isAdmin');
+      // Check if 'username' is set in sessionStorage
+      const username = sessionStorage.getItem('username');
+      const isAdmin = sessionStorage.getItem('isAdmin');
+
+      if (username) {
+        // Redirect based on whether the user is an admin
+        if (isAdmin === 'true') {
+          window.location.href = "admin.html";  // Redirect to admin page if user is admin
+        } else {
+          window.location.href = "catalog.html";  // Redirect to catalog if user is not admin
+        }
+      }
+
+      // Show admin link if the user is an admin
       if (isAdmin === 'true') {
         document.getElementById('admin-link').style.display = "inline-block";
       }
