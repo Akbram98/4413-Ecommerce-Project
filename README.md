@@ -85,3 +85,19 @@ CREATE TABLE Payment (
     date DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_transaction FOREIGN KEY (trans_id) REFERENCES Transaction(trans_id)
 );
+
+## Local Setup
+### To run the project locally:
+
+Install WampServer:
+Download and install WampServer from here.
+Access phpMyAdmin:  Open phpMyAdmin by navigating to http://localhost/phpmyadmin/ in your browser.
+Create Database: Log in with the username root (no password) and create a new database named eecs4413.
+Execute SQL Scripts: Select the eecs4413 database, go to the SQL tab, paste the provided SQL scripts, and click "Go" to execute.
+Configure Database Connection: If you have set a password for the root user, update the dao/Database.php file to include your password.
+Access the Application: Navigate to http://localhost/view/index.html in your browser to view and interact with the application.
+Admin Credentials
+To access the admin panel, use the following credentials:
+
+Username: hiraku
+Password: hiraku123
