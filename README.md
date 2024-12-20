@@ -31,8 +31,8 @@ Submitted on eClass.
 ## Admin Credentials
 To access the admin panel, use the following credentials:
 
-**Username**: hiraku
-**Password**: hiraku123
+**Username**: hiraku  
+**Password**: hiraku123  
 
 ## Database Setup
 
