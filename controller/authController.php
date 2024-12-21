@@ -349,7 +349,7 @@ class AuthController {
 
             $itemid = $data['itemid'] ?? null;
             $name = $data['name'] ?? null;
-            $price = $date['price'] ?? null;
+            $price = $data['price'] ?? null;
             $description = $data['description'] ?? null;
             $brand = $data['brand'] ?? null;
             $quantity = $data['quantity'] ?? null;
