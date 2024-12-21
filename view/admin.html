@@ -18,6 +18,16 @@
       <a href="client.html">Clients</a>
       <a href="sales.html">Sales</a>
     </nav>
+    <div class="user-auth">
+      <button onclick="signOut()">Sign Out</button>
+    </div>
+    <script>
+      function signOut(){
+        sessionStorage.clear();
+        window.location.href = "index.html";
+      }
+    </script>
+
   </header>
 
   <main>
